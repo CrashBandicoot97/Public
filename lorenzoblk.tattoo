@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>lorenzoblk.tattoo | Simulatori Tattoo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #ffffff; 
+            color: #000000; 
+            margin: 0; 
+            height: 100dvh; 
+            width: 100vw; 
+            overflow: hidden; 
+        }
+
+        /* --- STILI LANDING PAGE --- */
+        #landing-container {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background-color: #ffffff;
+            transition: opacity 1s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #landing-container.finished { display: none; }
+        #landing-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+        #landing-content {
+            position: absolute;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s ease-in;
+            pointer-events: none;
+        }
+        #landing-content.visible { opacity: 1; transform: scale(1); filter: blur(0px); }
+        #landing-content.hidden-start { opacity: 0; transform: scale(0.9); filter: blur(10px); }
+        #enter-btn {
+            pointer-events: auto;
+            padding: 1rem 3rem;
+            background-color: #000000;
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: 800;
+            border-radius: 9999px;
+            cursor: pointer;
+            border: none;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        #enter-btn:hover {
+            transform: scale(1.05);
+            background-color: #222;
+        }
+
+        /* --- STILI HUB PAGE --- */
+        body.hub-ready { overflow-y: auto; height: auto; min-height: 100dvh; background-color: #fcfcfc; }
+
+        #hub-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100dvh;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 1s ease;
+            padding: 40px 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        body.hub-ready #hub-container { opacity: 1; transform: translateY(0); display: flex; }
+
+        /* Stili specifici per le App Card */
+        .app-card {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            border: 1px solid #eaeaea;
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+        .app-card:hover {
+            transform: translateY(-8px);
+            border-color: #000000;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+        }
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 4px;
+            background: #000000;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+        .app-card:hover::before {
+            transform: scaleX(1);
+        }
+        .icon-wrapper {
+            transition: all 0.4s ease;
+        }
+        .app-card:hover .icon-wrapper {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- OVERLAY COSTANTE APPSOLUTE STUDIO -->
+    <a href="#" class="fixed top-4 right-4 md:top-6 md:right-6 z-[10000] text-[8px] md:text-[10px] font-medium text-black tracking-wide hover:opacity-60 transition-opacity text-right">
+        in collaborazione con <strong>APPSOLUTE STUDIO&trade;</strong>
+    </a>
+
+    <!-- --- LANDING PAGE (Inchiostro) --- -->
+    <div id="landing-container">
+        <canvas id="landing-canvas"></canvas>
+        <div id="landing-content" class="hidden-start">
+            <h1 class="text-5xl md:text-8xl font-black mb-8 tracking-tighter text-center text-black">lorenzoblk.tattoo</h1>
+            <button id="enter-btn">Entra nello Studio</button>
+        </div>
+    </div>
+
+    <!-- --- HUB PAGE --- -->
+    <div id="hub-container">
+        
+        <div class="mb-8 md:mb-12 text-center px-4">
+            <span class="inline-block py-1.5 px-4 rounded-full bg-gray-100 text-[9px] md:text-xs font-black tracking-widest uppercase mb-4 text-gray-500">I nostri strumenti digitali</span>
+            <h2 class="text-2xl md:text-5xl font-black tracking-tighter mb-2 leading-tight">Esplora qualche nostra bozza di tatuaggio tramite:</h2>
+        </div>
+
+        <!-- GRIGLIA CARD (Sempre 2 colonne, anche su mobile) -->
+        <div class="grid grid-cols-2 gap-3 md:gap-8 w-full max-w-4xl mb-8 md:mb-12 px-3 md:px-0">
+            
+            <!-- CARD 1: 3D Tattoo Simulator -->
+            <a href="https://gemini.google.com/share/0dd178383565" target="_blank" class="app-card flex flex-col items-center text-center p-5 md:p-10">
+                <div class="icon-wrapper w-14 h-14 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-black flex items-center justify-center mb-5 md:mb-8 text-white shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 md:w-10 md:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                </div>
+                <h3 class="text-sm md:text-2xl font-black uppercase tracking-tight mb-4 md:mb-5 leading-tight">3D Tattoo<br class="md:hidden"> Simulator</h3>
+                <div class="w-8 h-px bg-gray-200 mb-4 md:mb-5"></div>
+                <p class="text-[10px] md:text-sm text-gray-500 font-medium leading-relaxed">
+                    Permette di immaginare come un tatuaggio si adatta alle curve del corpo in un ambiente tridimensionale.
+                </p>
+            </a>
+
+            <!-- CARD 2: Image Tattoo Simulator -->
+            <a href="https://gemini.google.com/share/10b1b15d2cc4" target="_blank" class="app-card flex flex-col items-center text-center p-5 md:p-10">
+                <div class="icon-wrapper w-14 h-14 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-black flex items-center justify-center mb-5 md:mb-8 text-white shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 md:w-10 md:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                </div>
+                <h3 class="text-sm md:text-2xl font-black uppercase tracking-tight mb-4 md:mb-5 leading-tight">Image Tattoo<br class="md:hidden"> Simulator</h3>
+                <div class="w-8 h-px bg-gray-200 mb-4 md:mb-5"></div>
+                <p class="text-[10px] md:text-sm text-gray-500 font-medium leading-relaxed">
+                    Permette di vedere come starebbe un tatuaggio sul proprio corpo caricando un'immagine di se stessi.
+                </p>
+            </a>
+
+        </div>
+
+        <div class="w-full max-w-4xl px-4 md:px-0">
+            <div class="bg-gray-50 border border-gray-100 rounded-3xl p-6 md:p-10 text-center shadow-inner">
+                <p class="text-gray-600 font-medium text-xs md:text-lg max-w-2xl mx-auto leading-relaxed">
+                    Esplora idee e bozze di tatuaggi. Divertiti ad applicarli su manichini 3D o direttamente sulle tue foto! <br class="hidden md:block"><br class="md:hidden">
+                    <span class="text-black font-black">Ricorda però che questo è solo l'inizio:</span> solo attraverso una consulenza di persona potrai ottenere un disegno su misura, studiato nei minimi dettagli per adattarsi perfettamente alle linee e alle curve del tuo corpo.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            // --- LANDING PARTICLES (Stile Inchiostro) ---
+            const container = document.getElementById('landing-container');
+            const canvas = document.getElementById('landing-canvas');
+            const ctx = canvas.getContext('2d');
+            const enterBtn = document.getElementById('enter-btn');
+            
+            let width, height, particles = [], mouse = { x: -1000, y: -1000 }, isTransitioning = false;
+            let hasInteracted = false; 
+            
+            let PARTICLE_COUNT = window.innerWidth < 768 ? 1400 : 4000;
+
+            const particleSprite = document.createElement('canvas');
+            particleSprite.width = 20;
+            particleSprite.height = 20;
+            const pCtx = particleSprite.getContext('2d');
+            pCtx.beginPath();
+            pCtx.arc(10, 10, 10, 0, Math.PI * 2);
+            pCtx.fillStyle = '#000000';
+            pCtx.fill();
+
+            class Particle {
+                constructor() {
+                    const angle = Math.random() * Math.PI * 2, r = Math.random() * 150;
+                    this.x = (window.innerWidth / 2) + Math.cos(angle) * r;
+                    this.y = (window.innerHeight / 2) + Math.sin(angle) * r;
+                    this.vx = (Math.random() - 0.5) * 2;
+                    this.vy = (Math.random() - 0.5) * 2;
+                    this.size = Math.random() * 6 + 2; 
+                    this.baseX = this.x; this.baseY = this.y;
+                    this.swayFactor = Math.random() * 0.8 + 0.2; 
+                }
+                draw() {
+                    if (this.size <= 0.1) return; 
+                    ctx.drawImage(particleSprite, this.x - this.size/2, this.y - this.size/2, this.size, this.size); 
+                }
+                update(globalSwayX, globalSwayY) {
+                    if (isTransitioning) {
+                        this.size *= 0.88; this.x += this.vx * 3; this.y += this.vy * 3; return;
+                    }
+
+                    this.vx += globalSwayX * this.swayFactor;
+                    this.vy += globalSwayY * this.swayFactor;
+
+                    let dx = mouse.x - this.x, dy = mouse.y - this.y;
+                    
+                    if (dx > -250 && dx < 250 && dy > -250 && dy < 250) {
+                        let distSq = dx * dx + dy * dy;
+                        if (distSq < 62500) { 
+                            let distance = Math.sqrt(distSq);
+                            const force = (250 - distance) / 250;
+                            this.vx -= (dx / distance) * force * 20;
+                            this.vy -= (dy / distance) * force * 20;
+                        }
+                    }
+
+                    this.vx *= 0.92; this.vy *= 0.92; 
+                    this.vx += (this.baseX - this.x) * 0.04; 
+                    this.vy += (this.baseY - this.y) * 0.04;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+            }
+
+            function init() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+                PARTICLE_COUNT = window.innerWidth < 768 ? 1400 : 4000;
+                particles = [];
+                for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
+            }
+
+            function animate() {
+                const time = Date.now() * 0.0015;
+                const globalSwayX = Math.sin(time) * 1.2;
+                const globalSwayY = Math.cos(time * 0.8) * 1.2;
+
+                if (!hasInteracted && !isTransitioning) {
+                    mouse.x = width / 2 + Math.sin(time) * (width * 0.4);
+                    mouse.y = height / 2 + Math.sin(time * 1.3) * (height * 0.4);
+                }
+
+                ctx.clearRect(0, 0, width, height);
+                let particlesInCenter = 0;
+                let threshold = PARTICLE_COUNT * 0.03;
+
+                particles.forEach(p => {
+                    p.update(globalSwayX, globalSwayY); 
+                    p.draw();
+                    if (!isTransitioning) {
+                        let centerDistSq = (p.x - width/2) * (p.x - width/2) + (p.y - height/2) * (p.y - height/2);
+                        if (centerDistSq < 16900) particlesInCenter++;
+                    }
+                });
+
+                if (!isTransitioning) {
+                    if (particlesInCenter < threshold) {
+                        document.getElementById('landing-content').classList.remove('hidden-start');
+                        document.getElementById('landing-content').classList.add('visible');
+                    } else {
+                        document.getElementById('landing-content').classList.remove('visible');
+                        document.getElementById('landing-content').classList.add('hidden-start');
+                    }
+                }
+                requestAnimationFrame(animate);
+            }
+
+            window.addEventListener('resize', init);
+            window.addEventListener('mousemove', e => { 
+                hasInteracted = true;
+                mouse.x = e.clientX; 
+                mouse.y = e.clientY; 
+            });
+            
+            window.addEventListener('touchmove', e => { 
+                if(e.touches.length > 0) {
+                    hasInteracted = true;
+                    mouse.x = e.touches[0].clientX; 
+                    mouse.y = e.touches[0].clientY; 
+                }
+            });
+            window.addEventListener('touchstart', e => { 
+                if(e.touches.length > 0) {
+                    hasInteracted = true;
+                    mouse.x = e.touches[0].clientX; 
+                    mouse.y = e.touches[0].clientY; 
+                }
+            });
+
+            enterBtn.addEventListener('click', () => {
+                isTransitioning = true;
+                container.style.opacity = '0';
+                setTimeout(() => {
+                    container.classList.add('finished');
+                    document.body.classList.add('hub-ready');
+                }, 1000);
+            });
+
+            init(); animate();
+        })();
+    </script>
+</body>
+</html>
