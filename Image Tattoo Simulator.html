@@ -1,0 +1,2403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tattoo Lab | Glass Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@4.11.0/dist/tf-core.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@4.11.0/dist/tf-converter.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.11.0/dist/tf-backend-webgl.min.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --accent-color: #000000; 
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --text-main: #1f2937;
+            --text-sec: #6b7280;
+        }
+
+        html, body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #ffffff !important; 
+            background-image: none !important;
+            background: #ffffff !important;
+            color: var(--text-main); 
+            margin: 0; 
+            height: 100dvh; 
+            width: 100vw; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            touch-action: none;
+        }
+
+        /* --- STILI MENU IMPORTATI DA APP 1 (Glass Menu Style) --- */
+        .glass-ui { 
+            background: rgba(255, 255, 255, 0.65); 
+            backdrop-filter: blur(12px) saturate(180%); 
+            -webkit-backdrop-filter: blur(12px) saturate(180%); 
+            border: 1px solid rgba(255, 255, 255, 0.3); 
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); 
+            transition: background-color 0.3s, opacity 0.3s; 
+        }
+        
+        #glass-menu { 
+            position: absolute; 
+            /* MODIFICA: Portato a 120px per allinearsi matematicamente ai menu dentro la dock (90px + 30px di offset) */
+            bottom: 120px; 
+            left: 50%;
+            transform: translateX(-50%) translateY(20px) scale(0.95); 
+            opacity: 0; 
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease-out; 
+            pointer-events: none; 
+            width: 320px; /* Allargato a 320px per ospitare 3 colonne */
+            padding: 4px; 
+            border-radius: 24px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px; 
+            z-index: 1000; 
+            transform-origin: bottom center;
+        }
+        #glass-menu.visible { 
+            transform: translateX(-50%) translateY(0) scale(1); 
+            opacity: 1; 
+            pointer-events: auto; 
+        }
+
+        /* LOGICA PULSANTI E LOCK STEP 1 */
+        @keyframes pulse-border { 
+            0% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.4); border-color: #000; } 
+            70% { box-shadow: 0 0 0 10px rgba(0, 0, 0, 0); border-color: #000; } 
+            100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); } 
+        }
+        .pulsing-btn {
+            animation: pulse-border 2s infinite;
+            border: 1.5px solid black !important;
+            transform: scale(1.02);
+            z-index: 50; /* Ensure it stays on top */
+        }
+
+        /* Quando siamo nello step 1, disabilitiamo tutto tranne il body btn */
+        .menu-locked-step1 .disable-on-lock {
+            opacity: 0.3;
+            pointer-events: none;
+            filter: grayscale(1);
+        }
+        /* Assicuriamo che il body btn sia attivo */
+        .menu-locked-step1 #btn-upload-body {
+            opacity: 1;
+            pointer-events: auto;
+            filter: none;
+            z-index: 50;
+        }
+
+        #preset-palette-container::-webkit-scrollbar { height: 4px; }
+        #preset-palette-container::-webkit-scrollbar-track { background: transparent; }
+        #preset-palette-container::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 2px; }
+        
+        #category-select { 
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); 
+            background-position: right 0.5rem center; 
+            background-repeat: no-repeat; 
+            background-size: 1.5em 1.5em; 
+            padding-right: 2.5rem; 
+            -webkit-appearance: none; 
+            -moz-appearance: none; 
+            appearance: none; 
+        }
+
+        /* --- STILI IMAGE PROCESSING OVERLAY (Process Overlay) --- */
+        #img-proc-overlay { 
+            position: fixed; inset: 0; z-index: 300; 
+            display: flex; flex-direction: column; 
+            background-color: #ffffff !important; 
+            background-image: none !important;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease; 
+            opacity: 0; pointer-events: none;
+        }
+        #img-proc-overlay.active { opacity: 1; pointer-events: auto; }
+        #img-proc-overlay.inactive { opacity: 0; pointer-events: none; }
+
+        /* CLEAN WHITE CARD STYLE */
+        .clean-card {
+            background-color: #f9fafb;
+            background-image:
+                linear-gradient(45deg, #f3f4f6 25%, transparent 25%),
+                linear-gradient(-45deg, #f3f4f6 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #f3f4f6 75%),
+                linear-gradient(-45deg, transparent 75%, #f3f4f6 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease-in-out;
+            position: relative;
+            overflow: hidden;
+        }
+        .clean-card:hover:not(.selected) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-color: #d1d5db;
+        }
+        .clean-card.selected {
+            border-color: #000000;
+            box-shadow: 0 0 0 1px #000000, 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+            z-index: 10;
+        }
+        .clean-card.selected::after {
+            content: '✓';
+            position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+            width: 20px; height: 20px;
+            background-color: #000000; color: #ffffff;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15); z-index: 20; border: 2px solid white;
+        }
+        .clean-btn {
+            background: #ffffff; border: 1px solid #e5e7eb; color: #4b5563; transition: all 0.2s;
+        }
+        .clean-btn:hover { background: #f9fafb; border-color: #d1d5db; color: #111827; }
+        .clean-btn-primary {
+            background: #000000; color: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid transparent;
+        }
+        .clean-btn-primary:hover:not(:disabled) {
+            background: #1f2937; transform: translateY(-1px);
+        }
+        .clean-btn-primary:disabled {
+            background: #9ca3af; cursor: not-allowed; transform: none; box-shadow: none;
+        }
+
+        /* --- HEADER --- */
+        #global-header { 
+            position: fixed; top: 0; left: 0; width: 100%; padding: 20px 24px; z-index: 1000; 
+            display: flex; justify-content: flex-end; align-items: center; pointer-events: none; 
+        }
+        
+        .back-btn { 
+            position: fixed; top: 24px; left: 24px; z-index: 1001; 
+            background: white; color: var(--text-main); 
+            width: 44px; height: 44px; 
+            border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            transition: all 0.3s; cursor: pointer; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05);
+        }
+        .back-btn:hover { background: #f3f4f6; transform: translateY(-1px); }
+        .back-btn svg { width: 20px; height: 20px; }
+
+        .header-actions { pointer-events: auto; }
+
+        /* --- MAIN APP AREA --- */
+        .app-container-wrapper { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; opacity: 0; 
+            transition: opacity 1s ease 0.3s; display: flex; align-items: center; justify-content: center; 
+            overflow: hidden; pointer-events: none; 
+        }
+        body.app-active .app-container-wrapper { opacity: 1; pointer-events: auto; }
+
+        .app-wrapper { 
+            position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; perspective: 1000px; 
+        }
+
+        /* MODIFICA RESPONSIVITÀ: Calcolo altezza massima ridotto per garantire lo spazio di non sovrapposizione in alto e in basso */
+        .canvas-glass-container { 
+            position: relative; max-width: calc(100vw - 30px); max-height: calc(100dvh - 180px); 
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); border-radius: 24px; 
+            box-shadow: none; 
+            border: 4px solid rgba(255,255,255,0.5); overflow: hidden; 
+            box-sizing: content-box; 
+        }
+        @media (min-width: 768px) { 
+            .canvas-glass-container { max-width: 90vw; max-height: calc(100dvh - 180px); } 
+        }
+        @media (max-height: 500px) { 
+            /* Regola specifica per dispositivi molto corti in orizzontale */
+            .canvas-glass-container { max-height: calc(100dvh - 100px); } 
+        }
+
+        #main-canvas { display: block; width: 100%; height: 100%; object-fit: cover; touch-action: none; background: #fff; }
+        .main-canvas.grabbing { cursor: grabbing; }
+        .main-canvas.drawing-lines { cursor: crosshair; }
+
+        /* --- DOCK & PANELS --- */
+        .ui-dock-container { 
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); 
+            display: flex; align-items: flex-end; justify-content: center; gap: 12px; 
+            z-index: 100; width: auto; max-width: 95%; pointer-events: none; opacity: 0; 
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); 
+        }
+        .ui-dock-container.visible-dock { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0) scale(1); }
+        .ui-dock-container.dock-hidden-down { opacity: 0; pointer-events: none; transform: translateX(-50%) translateY(30px) scale(0.9); }
+
+        .dock-btn { 
+            pointer-events: auto; width: 56px; height: 56px; border-radius: 50%; 
+            background: var(--glass-bg); backdrop-filter: blur(12px) saturate(180%); 
+            border: 1px solid var(--glass-border); box-shadow: 0 8px 30px rgba(0,0,0,0.1); 
+            color: #4b5563; display: flex; align-items: center; justify-content: center; 
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; 
+        }
+        .dock-btn svg { stroke-width: 2px; width: 24px; height: 24px; }
+        .dock-btn:hover:not(.dock-disabled) { background: white; transform: translateY(-3px) scale(1.05); color: var(--accent-color); }
+        .dock-btn:active:not(.dock-disabled) { transform: scale(0.95); }
+        .dock-btn.active { background: white; color: var(--accent-color); border-color: var(--accent-color); }
+
+        .dock-disabled {
+            opacity: 0.4;
+            pointer-events: none;
+            filter: grayscale(1);
+        }
+
+        .floating-panel { 
+            position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%) scale(0.95); width: 320px; 
+            background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); 
+            -webkit-backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-border); 
+            border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
+            opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+            display: flex; flex-direction: column; gap: 15px; z-index: 99; 
+        }
+        .floating-panel.visible { opacity: 1; transform: translateX(-50%) scale(1); pointer-events: auto; }
+        .floating-panel.temp-hidden { opacity: 0 !important; pointer-events: none !important; transform: translateX(-50%) scale(0.9) !important; }
+
+        .panel-header { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-sec); text-align: center; margin-bottom: 5px; font-weight: 700; }
+        .ios-btn-group { display: flex; background: rgba(0,0,0,0.05); border-radius: 14px; padding: 3px; gap: 2px; }
+        .ios-btn { flex: 1; padding: 10px; border-radius: 11px; border: none; background: transparent; color: var(--text-sec); font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .ios-btn.active { background: white; color: var(--accent-color); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+        .ios-action-btn { width: 100%; padding: 14px; border-radius: 16px; background: var(--accent-color); color: white; border: none; font-weight: 600; font-size: 15px; cursor: pointer; transition: opacity 0.2s, transform 0.1s; 
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
+        .ios-action-btn:hover { opacity: 0.9; transform: scale(1.01); }
+        .ios-action-btn:active { transform: scale(0.98); }
+        .ios-action-btn.secondary { background: white; color: var(--text-main); border: 1px solid rgba(0,0,0,0.1); }
+        .ios-action-btn.secondary:hover { background: #f9fafb; }
+        .ios-action-btn.ghost { background: transparent; color: var(--text-sec); width: auto; padding: 10px; box-shadow: none; }
+        .ios-action-btn.ghost:hover { color: var(--text-main); }
+        
+        .glass-btn-style {
+            width: 100%;
+            padding: 16px;
+            border-radius: 20px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        .glass-btn-style:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transform: translateY(-1px);
+        }
+        .glass-btn-style svg {
+            color: var(--accent-color);
+        }
+
+        .solid-black-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 20px;
+            background: #000000;
+            border: 1px solid #000000;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .solid-black-btn:hover {
+            background: #1f2937;
+            transform: translateY(-1px);
+        }
+
+        .slider-container { width: 100%; display: flex; align-items: center; gap: 10px; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 24px; background: transparent; cursor: pointer; }
+        input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 6px; background: rgba(0,0,0,0.1); border-radius: 3px; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: white; margin-top: -7px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 1px solid rgba(0,0,0,0.1); transition: transform 0.1s; }
+        
+        /* Stili specifici per lo zoom slider PC per non intaccare gli altri slider */
+        #zoom-slider::-webkit-slider-thumb { 
+            -webkit-appearance: none; 
+            appearance: none; 
+            width: 14px; 
+            height: 14px; 
+            border-radius: 50%; 
+            background: #000; 
+            cursor: pointer; 
+            border: 2px solid #fff; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3); 
+            margin-top: -4px; /* Centrato rispetto al track di Tailwind */
+        }
+        #zoom-slider::-moz-range-thumb { 
+            width: 14px; 
+            height: 14px; 
+            border-radius: 50%; 
+            background: #000; 
+            cursor: pointer; 
+            border: 2px solid #fff; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3); 
+        }
+
+        .brush-preview-box { width: 100%; height: 120px; background: rgba(0,0,0,0.03); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-top: 10px; border: 1px dashed rgba(0,0,0,0.1); }
+        .brush-indicator { background: var(--text-main); border-radius: 50%; opacity: 0.8; transition: width 0.1s, height 0.1s; }
+
+        #loader-overlay, #tutorial-overlay, #reset-modal-overlay, #custom-modal-overlay, #api-error-modal-overlay { 
+            position: fixed; inset: 0; background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(8px); z-index: 200; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; transition: opacity 0.5s ease; 
+        }
+        /* MODIFICA: Portato il padding-bottom a 120px per allinearlo perfettamente a tutti gli altri menu a scomparsa */
+        #tutorial-overlay { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; justify-content: flex-end; padding-bottom: 120px; }
+
+        .welcome-content { 
+            text-align: center; max-width: 340px; width: 90%; padding: 30px; 
+            background: #ffffff; 
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            border-radius: 30px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+            border: 1px solid #f3f4f6;
+        }
+
+        .tutorial-card { background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-border); padding: 30px; border-radius: 28px; max-width: 320px; width: 90%; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .tutorial-dock-btn-clone { width: 64px; height: 64px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white; 
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); animation: pulse-ring 2s infinite; }
+        
+        .tutorial-dots { display: flex; gap: 6px; margin-top: 10px; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: #d1d5db; transition: all 0.3s; }
+        .dot.active { background: var(--accent-color); width: 18px; border-radius: 4px; }
+
+        .spinner { width: 40px; height: 40px; border: 3px solid rgba(0,0,0,0.1); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .hidden { display: none !important; }
+        .hidden-loader { opacity: 0; pointer-events: none; }
+
+        .modal-card { background: white; border: 1px solid rgba(0,0,0,0.05); padding: 24px; border-radius: 24px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .modal-title { font-size: 1.125rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+        .modal-text { color: var(--text-sec); font-size: 0.875rem; margin-bottom: 24px; line-height: 1.5; }
+
+        #brush-controls, #confirmation-controls, #brush-size-controls { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+        .flex-row-controls { display: flex; flex-direction: row !important; gap: 10px; }
+        
+        #adjust-step-panel { 
+            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); width: 320px; 
+            background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); 
+            border: 1px solid var(--glass-border); border-radius: 24px; padding: 25px; 
+            box-shadow: 0 25px 60px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 20px; z-index: 150; 
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+        @keyframes slideUp { from { transform: translate(-50%, 100px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+        /* MODIFICA RESPONSIVITÀ MENU (Landscape/Schermi corti) */
+        @media (max-height: 600px) {
+            .floating-panel {
+                bottom: 80px; /* Dentro la dock (80+30 = 110px totali) */
+                max-height: calc(100dvh - 120px);
+                overflow-y: auto;
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            #glass-menu {
+                bottom: 110px; /* Allineato matematicamente ai 110px totali */
+                max-height: calc(100dvh - 120px);
+                overflow-y: auto;
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            #glass-menu::-webkit-scrollbar, .floating-panel::-webkit-scrollbar { 
+                display: none; 
+            }
+
+            /* Tutorial allineato anch'esso a 110px in landscape */
+            #tutorial-overlay { padding-bottom: 110px; }
+            .tutorial-card { max-height: calc(100dvh - 120px); overflow-y: auto; -ms-overflow-style: none; scrollbar-width: none; }
+            .tutorial-card::-webkit-scrollbar { display: none; }
+
+            .floating-panel { padding: 15px; gap: 10px; }
+            
+            #adjust-step-panel {
+                bottom: 10px;
+                max-height: calc(100dvh - 20px);
+                overflow-y: auto;
+                -ms-overflow-style: none; scrollbar-width: none;
+                padding: 15px; gap: 10px;
+            }
+            #adjust-step-panel::-webkit-scrollbar { display: none; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header id="global-header">
+        <div class="header-actions relative">
+            <button id="lang-toggle-btn" class="w-10 h-10 bg-white/80 backdrop-blur-md rounded-full border border-gray-200 shadow-sm flex items-center justify-center transition-transform active:scale-95 cursor-pointer pointer-events-auto">
+                <span id="current-lang-flag" class="text-xl leading-none">🇬🇧</span>
+            </button>
+            <div id="lang-dropdown" class="absolute top-12 right-0 bg-white/90 backdrop-blur-md border border-gray-200 rounded-xl shadow-lg flex flex-col overflow-hidden opacity-0 pointer-events-none transition-all duration-200 z-[1000] w-36 transform origin-top-right scale-95">
+                <button class="lang-option w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-100 transition-colors cursor-pointer text-sm font-semibold text-gray-700 pointer-events-auto" data-lang="en">
+                    <span class="text-lg leading-none">🇬🇧</span> English
+                </button>
+                <button class="lang-option w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-100 transition-colors cursor-pointer text-sm font-semibold text-gray-700 pointer-events-auto" data-lang="it">
+                    <span class="text-lg leading-none">🇮🇹</span> Italiano
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <button id="mode-toggle-btn" class="fixed top-[20px] left-1/2 -translate-x-1/2 z-[1001] w-10 h-10 bg-white/80 backdrop-blur-md rounded-full border border-gray-200 shadow-sm flex items-center justify-center transition-transform active:scale-95 cursor-pointer pointer-events-auto">
+        <span class="text-xl leading-none">🔄</span>
+    </button>
+
+    <button id="global-back-btn" class="back-btn hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+    </button>
+
+    <div class="app-container-wrapper">
+        
+        <div id="img-proc-overlay" class="inactive">
+            <div class="flex-1 flex flex-col p-4 gap-5 h-full w-full max-w-2xl mx-auto justify-center">
+                <div class="text-center py-2 relative z-10">
+                    <h2 class="font-bold text-gray-900 text-2xl tracking-tight" data-i18n="chooseStyleTitle">Choose Style</h2>
+                    <p class="text-xs text-gray-500 mt-1 font-medium" data-i18n="chooseStyleDesc">Select how the tattoo blends with the skin</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-y-auto p-2 pb-8">
+                    <!-- Card 1: Original -->
+                    <div id="card-option-original" class="clean-card option-card rounded-2xl p-2.5 flex flex-col items-center justify-center cursor-pointer group">
+                        <div class="w-full bg-white rounded-xl p-2 mb-2 shadow-sm border border-gray-100 flex flex-col items-start overflow-hidden">
+                            <span class="text-[11px] font-bold text-gray-800 uppercase tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optOrigTitle">Original Photo</span>
+                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap" data-i18n="optOrigDesc">No adjustments</span>
+                        </div>
+                        <div class="w-full flex-1 flex items-center justify-center overflow-hidden rounded-xl">
+                            <img id="preview-opt-original" class="max-w-full max-h-full object-contain" />
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Color -->
+                    <div id="card-option-mid" class="clean-card option-card rounded-2xl p-2.5 flex flex-col items-center justify-center cursor-pointer group">
+                        <div class="w-full bg-white rounded-xl p-2 mb-2 shadow-sm border border-gray-100 flex flex-col items-start overflow-hidden">
+                            <span class="text-[11px] font-bold text-gray-900 uppercase tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optColorTitle">Color Ink</span>
+                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap" data-i18n="optColorDesc">White background removed</span>
+                        </div>
+                         <div class="w-full flex-1 flex items-center justify-center overflow-hidden rounded-xl">
+                             <img id="preview-opt-mid" class="max-w-full max-h-full object-contain" />
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Soft -->
+                    <div id="card-option-soft" class="clean-card option-card rounded-2xl p-2.5 flex flex-col items-center justify-center cursor-pointer group">
+                         <div class="w-full bg-white rounded-xl p-2 mb-2 shadow-sm border border-gray-100 flex flex-col items-start overflow-hidden">
+                            <span class="text-[11px] font-bold text-gray-900 uppercase tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optFineTitle">Fine Line</span>
+                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap" data-i18n="optFineDesc">Converted to stencil</span>
+                        </div>
+                        <div class="w-full flex-1 flex items-center justify-center overflow-hidden rounded-xl">
+                             <img id="preview-opt-soft" class="max-w-full max-h-full object-contain" />
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Bold -->
+                    <div id="card-option-bold" class="clean-card option-card rounded-2xl p-2.5 flex flex-col items-center justify-center cursor-pointer group">
+                        <div class="w-full bg-white rounded-xl p-2 mb-2 shadow-sm border border-gray-100 flex flex-col items-start overflow-hidden">
+                            <span class="text-[11px] font-bold text-gray-900 uppercase tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optBoldTitle">Bold Line</span>
+                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap" data-i18n="optBoldDesc">Converted to stencil</span>
+                        </div>
+                         <div class="w-full flex-1 flex items-center justify-center overflow-hidden rounded-xl">
+                             <img id="preview-opt-bold" class="max-w-full max-h-full object-contain" />
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 mt-4 shrink-0 pb-4 relative z-20">
+                    <button id="btn-cancel-overlay" class="flex-1 py-3.5 rounded-xl font-bold text-gray-600 clean-btn shadow-sm text-sm tracking-wide" data-i18n="btnCancel">CANCEL</button>
+                    <button id="btn-confirm-overlay" disabled class="flex-[2] py-3.5 rounded-xl font-bold text-white clean-btn-primary shadow-md active:scale-95 transition-all text-sm tracking-wide" data-i18n="btnConfirm">CONFIRM</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="custom-modal-overlay" class="hidden">
+            <div class="modal-card">
+                <h3 class="modal-title" data-i18n="modalWarningTitle">Warning</h3>
+                <p class="modal-text" data-i18n="modalWarningDesc">Returning to the previous step will discard your current edits. Continue?</p>
+                <div class="flex gap-3">
+                    <button id="modal-cancel-btn" class="ios-action-btn secondary" data-i18n="modalCancel">Cancel</button>
+                    <button id="modal-confirm-btn" class="ios-action-btn" data-i18n="modalContinue">Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nuovo Modal di Errore API Google Drive (No alert) -->
+        <div id="api-error-modal-overlay" class="hidden">
+            <div class="modal-card">
+                <h3 class="modal-title text-[1.125rem] font-bold text-gray-800 mb-2">Azione Richiesta (Google Cloud)</h3>
+                <p class="modal-text text-gray-600 text-sm mb-6 leading-relaxed">
+                    ⚠️ La tua API Key è corretta, ma devi <b>abilitare l'API di Google Drive</b> nel tuo progetto Google Cloud per usare le tue cartelle.<br><br>
+                    Copia e apri il link mostrato nella console del browser per abilitarla. Fino ad allora l'app userà i preset di emergenza.
+                </p>
+                <button id="api-error-close-btn" class="ios-action-btn w-full">Ho capito</button>
+            </div>
+        </div>
+
+        <div id="tutorial-overlay" class="hidden">
+            <div class="tutorial-card">
+                <div class="tutorial-icon-preview">
+                    <div class="tutorial-dock-btn-clone" id="tut-icon-container"></div>
+                </div>
+                <h3 id="tut-title" class="text-xl font-bold text-gray-800">Step Title</h3>
+                <p id="tut-desc" class="text-gray-500 text-sm leading-relaxed">Step description.</p>
+                <div class="tutorial-dots" id="tut-dots"></div>
+                <div class="flex w-full gap-3 mt-2">
+                    <button id="tut-prev-btn" class="ios-action-btn secondary hidden" data-i18n="tutBack">Back</button>
+                    <button id="tut-next-btn" class="ios-action-btn" data-i18n="tutNext">Next</button>
+                </div>
+                <button id="tut-skip-btn" class="ios-action-btn ghost text-xs mt-0" data-i18n="tutClose">Close Tutorial</button>
+            </div>
+        </div>
+
+        <div id="loader-overlay" class="hidden-loader">
+            <div class="spinner" id="loader-spinner"></div>
+            <p id="loader-text" class="text-sm font-semibold text-gray-600 mb-2">Loading...</p>
+            <div class="progress-bar-container w-48 h-1 bg-gray-200 rounded-full overflow-hidden" style="display:none">
+                <div id="progress-bar" class="h-full bg-black transition-all duration-200" style="width: 0%"></div>
+            </div>
+            <p id="progress-percent" class="text-xs text-gray-400 mt-2" style="display:none">0%</p>
+        </div>
+
+        <div class="main-container hidden w-full h-full relative">
+            <div class="app-wrapper">
+                <div id="canvas-glass-container" class="canvas-glass-container">
+                    <canvas id="main-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- DESKTOP CONTROLS (Hidden on mobile & synced with main dock) -->
+            <div id="desktop-controls" class="absolute bottom-6 left-6 z-[101] flex flex-col items-center gap-5 hidden opacity-0 transition-opacity duration-300">
+                <!-- CONTROLLO ZOOM -->
+                <div class="relative flex flex-col items-center gap-1 pointer-events-auto">
+                    <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest drop-shadow-sm select-none" data-i18n="lblZoom">ZOOM</span>
+                    <div class="glass-ui rounded-full w-8 h-32 flex items-center justify-center shadow-sm ring-1 ring-black/5 relative">
+                        <!-- MODIFICA MINIMA: step="0.001" per precisione ed eliminare salti visivi e perdite di risoluzione su PC -->
+                        <input type="range" id="zoom-slider" min="0.1" max="5.0" step="0.001" value="1" class="absolute h-1 bg-gray-300 rounded-full appearance-none cursor-pointer outline-none" style="width: 90px; transform: rotate(-90deg);">
+                    </div>
+                </div>
+
+                <!-- CONTROLLI ROTAZIONE -->
+                <div class="relative flex flex-col items-center gap-1 pointer-events-auto">
+                    <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest drop-shadow-sm select-none" data-i18n="lblRotate">Rotate</span>
+                    <div class="flex gap-2">
+                        <button id="btn-rot-ccw" class="glass-ui w-10 h-10 rounded-full flex items-center justify-center shadow-sm hover:bg-white/80 active:scale-95 transition-all">
+                            <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v5h5"/>
+                            </svg>
+                        </button>
+                        <button id="btn-rot-cw" class="glass-ui w-10 h-10 rounded-full flex items-center justify-center shadow-sm hover:bg-white/80 active:scale-95 transition-all">
+                            <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 3v5h-5"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adjust-step-panel" class="hidden">
+                <div class="panel-header" data-i18n="step2Title">Step 2: Silhouette Fit</div>
+                <p class="text-xs text-gray-500 text-center leading-relaxed font-medium" data-i18n="step2Desc">
+                    Fine-tune the edge of your body silhouette for a realistic fit.
+                </p>
+                <div class="slider-container mt-2">
+                    <span class="text-xs font-bold text-gray-400">-</span>
+                    <input type="range" id="area-adjust-slider" min="-20" max="20" value="0">
+                    <span class="text-xs font-bold text-gray-400">+</span>
+                </div>
+                <button id="finish-adjust-btn" class="ios-action-btn mt-2" data-i18n="btnConfirmProceed">Confirm & Proceed</button>
+            </div>
+
+            <!-- DOCK CONTROLS (Center) -->
+            <div class="ui-dock-container visible-dock" id="top-right-controls"> 
+                <div class="relative group">
+                    <button id="tutorial-fab" class="dock-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    </button>
+                </div>
+
+                <div class="group">
+                    <button id="download-fab" class="dock-btn dock-disabled">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    </button>
+                    <div id="download-menu" class="floating-panel">
+                        <div class="panel-header" data-i18n="panelExportTitle">Export</div>
+                        <button id="download-btn" class="ios-action-btn" data-i18n="btnSaveCameraRoll">Save to Camera Roll</button>
+                        <button id="close-download-btn" class="ios-action-btn ghost text-xs mt-0 block mx-auto" data-i18n="btnCloseExport">Close Export</button>
+                    </div>
+                </div>
+
+                <div class="group">
+                    <button id="segment-fab" class="dock-btn dock-disabled">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 19.9V16h3a2 2 0 0 0 2-2v-2H5v2c0 1.1.9 2 2 2h3v3.9a2 2 0 1 0 4 0Z"/>
+                            <path d="M6 12V2h12v10"/>
+                            <path d="M14 2v4"/>
+                            <path d="M10 2v2"/>
+                        </svg>
+                    </button>
+                    <div id="segment-menu" class="floating-panel">
+                        <div class="panel-header" data-i18n="panelSilhTitle">Body Silhouette</div>
+                        <div id="brush-controls">
+                            <div class="ios-btn-group">
+                                <button id="add-area-btn" class="ios-btn active" data-i18n="btnAdd">Add</button>
+                                <button id="remove-area-btn" class="ios-btn" data-i18n="btnErase">Erase</button>
+                            </div>
+                            <button id="clear-area-btn" class="ios-action-btn secondary text-sm py-2 mt-2" data-i18n="btnResetSilh">Reset Silhouette</button>
+                        </div>
+                        <div id="brush-size-controls" class="mt-2">
+                            <label class="text-xs text-gray-500 ml-1 mb-1 block font-semibold" data-i18n="lblBrushPreview">Brush Size Preview</label>
+                            <div class="brush-preview-box">
+                                <div id="brush-indicator" class="brush-indicator" style="width: 40px; height: 40px;"></div>
+                            </div>
+                            <div class="slider-container mt-2">
+                                <span class="text-xs text-gray-400" data-i18n="lblMin">Min</span>
+                                <input type="range" id="brush-size-slider" min="5" max="100" value="40">
+                                <span class="text-xs text-gray-400" data-i18n="lblMax">Max</span>
+                            </div>
+                        </div>
+                        <button id="close-segment-btn" class="ios-action-btn ghost text-xs mt-0 block mx-auto" data-i18n="btnCloseSilh">Close Silhouette</button>
+                    </div>
+                </div>
+
+                <div class="group">
+                    <button id="menu-toggle-btn" class="dock-btn dock-disabled">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="glass-menu" class="glass-ui">
+                <div class="glass-menu-content">
+                    <div class="px-5 py-3 flex items-center justify-between disable-on-lock">
+                         <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" data-i18n="lblTextures">Textures</span>
+                         <span class="text-[10px] font-bold text-gray-600 bg-gray-200 px-2 py-0.5 rounded-full" data-i18n="lblTattooLayer">Tattoo Layer</span>
+                    </div>
+    
+                    <div id="image-actions-container" class="p-4 bg-white/40 rounded-[20px] backdrop-blur-sm relative z-40 mx-1">
+                        <div class="flex gap-3">
+                            <button id="btn-upload-body" class="flex-1 py-4 bg-white hover:bg-gray-50 text-gray-700 rounded-xl shadow-sm border border-gray-200 flex flex-col items-center justify-center gap-2 transition-all active:scale-95">
+                                 <div class="p-2 bg-gray-100 rounded-full text-gray-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                </div>
+                                <span class="text-sm font-bold" data-i18n="btnBody">Body</span>
+                            </button>
+    
+                            <button id="btn-upload-tattoo" class="flex-1 py-4 bg-white hover:bg-gray-50 text-gray-700 rounded-xl shadow-sm border border-gray-200 flex flex-col items-center justify-center gap-2 transition-all active:scale-95 disable-on-lock">
+                                <div class="p-2 bg-gray-100 rounded-full text-gray-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"></circle><line x1="12" y1="22" x2="12" y2="8"></line><path d="M5 12H2a10 10 0 0 0 20 0h-3"></path></svg>
+                                </div>
+                                <span class="text-sm font-bold" data-i18n="btnTattoo">Tattoo</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="preset-divider" class="px-5 py-2 flex items-center gap-3 relative z-40 disable-on-lock">
+                        <div class="h-px bg-gray-300 flex-grow"></div>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase" data-i18n="lblPresets">Presets</span>
+                        <div class="h-px bg-gray-300 flex-grow"></div>
+                    </div>
+    
+                    <div class="p-4 pt-0 space-y-3 relative z-40 disable-on-lock">
+                        <select id="category-select" class="w-full bg-white/60 border-none text-gray-700 text-xs font-bold rounded-xl focus:ring-2 focus:ring-gray-300 block p-3 shadow-sm outline-none"></select>
+                        
+                        <!-- MODIFICA MINIMA: Sostituito "px-1" con "px-3 -mx-2" per dare all'ombra i pixel necessari per espandersi senza essere tagliata dal bordo del menu scorrimento -->
+                        <div id="preset-palette-container" class="grid grid-rows-2 grid-flow-col auto-cols-max gap-3 overflow-x-auto py-2 px-3 -mx-2 snap-x"></div>
+                        
+                        <button id="close-glass-menu-btn" class="ios-action-btn ghost text-xs mt-0 block mx-auto" data-i18n="btnCloseTextures">Close Textures</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONFIRMATION DOCK -->
+            <div id="edit-mode-dock" class="ui-dock-container dock-hidden-down" style="gap: 20px; z-index: 101;">
+                <button id="dock-cancel-btn" class="ios-action-btn secondary" style="width: auto; padding: 14px 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 100px;" data-i18n="dockCancel">Cancel</button>
+                <button id="dock-confirm-btn" class="ios-action-btn" style="width: auto; padding: 14px 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-radius: 100px;" data-i18n="dockSave">Save</button>
+            </div>
+
+            <input type="file" id="photoInput" class="hidden" accept="image/*">
+            <input type="file" id="tattooInput" class="hidden" accept="image/png, image/jpeg, image/jpg">
+        </div>
+    </div>
+
+    <script type="module">
+        let currentLang = 'en';
+
+        const translations = {
+            en: {
+                chooseStyleTitle: "Choose Style",
+                chooseStyleDesc: "Select how the tattoo blends with the skin",
+                optOrigTitle: "Original Photo",
+                optOrigDesc: "No adjustments",
+                optColorTitle: "Color Ink",
+                optColorDesc: "White background removed",
+                optFineTitle: "Fine Line",
+                optFineDesc: "Converted to stencil",
+                optBoldTitle: "Bold Line",
+                optBoldDesc: "Converted to stencil",
+                btnCancel: "CANCEL",
+                btnConfirm: "CONFIRM",
+                modalWarningTitle: "Warning",
+                modalWarningDesc: "Returning to the previous step will discard your current edits. Continue?",
+                modalCancel: "Cancel",
+                modalContinue: "Continue",
+                tutClose: "Close Tutorial",
+                step2Title: "Step 2: Silhouette Fit",
+                step2Desc: "Fine-tune the edge of your body silhouette for a realistic fit.",
+                btnConfirmProceed: "Confirm & Proceed",
+                panelSilhTitle: "Body Silhouette",
+                btnAdd: "Add",
+                btnErase: "Erase",
+                btnResetSilh: "Reset Silhouette",
+                lblBrushPreview: "Brush Size Preview",
+                lblMin: "Min",
+                lblMax: "Max",
+                btnCloseSilh: "Close Silhouette",
+                panelExportTitle: "Export",
+                btnSaveCameraRoll: "Save to Camera Roll",
+                btnCloseExport: "Close Export",
+                lblTextures: "Textures",
+                lblTattooLayer: "Tattoo Layer",
+                btnBody: "Body",
+                btnTattoo: "Tattoo",
+                lblPresets: "Presets",
+                btnCloseTextures: "Close Textures",
+                dockCancel: "Cancel",
+                dockSave: "Save",
+                tutGotIt: "Got it",
+                tutNext: "Next",
+                tutBack: "Back",
+                loaderLoadingPreset: "Loading Preset...",
+                loaderAnalysisFailed: "Analysis failed.<br>Try again.",
+                loaderProcessing: "Processing silhouette...",
+                loaderCompleted: "Completed!",
+                loaderModel: "Loading AI model...",
+                loaderModelError: "AI model error.",
+                loaderAnalyzingShape: "Analyzing body shape...",
+                loaderAnalysisError: "Analysis error.",
+                loaderApplying: "Applying style...",
+                loaderErrorLoadingImg: "Error loading image",
+                lblZoom: "ZOOM",
+                lblRotate: "ROTATE",
+                modePreset: "Mode: Presets 🔄",
+                modeOwn: "Mode: Own Tattoo 🔄",
+                tutSteps: [
+                    { title: "1. Upload Body", desc: "Start by uploading a photo of the body part you want to tattoo using the 'Body' button." },
+                    { title: "2. Auto Silhouette", desc: "The AI automatically detects the body's edges. Use the 'Silhouette Fit' slider to expand or contract the body mask for a perfect fit." },
+                    { title: "3. Upload Tattoo", desc: "Tap 'Tattoo' to upload your design, or choose from the available Presets in the menu." },
+                    { title: "4. Style and Background", desc: "Choose the effect:<br>• <b>Original:</b> No changes<br>• <b>Color Ink:</b> Removes white background<br>• <b>Fine/Bold:</b> Converts to pure black stencil." },
+                    { title: "5. Position and Scale", desc: "Use one finger to move the tattoo. Use two fingers (pinch and rotate) to scale and tilt it." },
+                    { title: "6. Silhouette Brush", desc: "If the tattoo spills over, open the 'Silhouette Brush'. You can manually erase or add areas of the body silhouette where the tattoo should be visible." },
+                    { title: "7. Save Result", desc: "Once the tattoo is perfectly placed, tap the download icon to save the final image to your gallery." }
+                ]
+            },
+            it: {
+                chooseStyleTitle: "Scegli lo Stile",
+                chooseStyleDesc: "Seleziona come il tatuaggio si fonde con la pelle",
+                optOrigTitle: "Foto Originale",
+                optOrigDesc: "Nessuna modifica",
+                optColorTitle: "Inchiostro a Colori",
+                optColorDesc: "Sfondo bianco rimosso",
+                optFineTitle: "Linea Sottile",
+                optFineDesc: "Convertito in stencil",
+                optBoldTitle: "Linea Spessa",
+                optBoldDesc: "Convertito in stencil",
+                btnCancel: "ANNULLA",
+                btnConfirm: "CONFERMA",
+                modalWarningTitle: "Attenzione",
+                modalWarningDesc: "Tornando al passaggio precedente perderai le modifiche attuali. Continuare?",
+                modalCancel: "Annulla",
+                modalContinue: "Continua",
+                tutClose: "Chiudi Tutorial",
+                step2Title: "Step 2: Adattamento Sagoma",
+                step2Desc: "Perfeziona il bordo della sagoma del corpo per un adattamento realistico.",
+                btnConfirmProceed: "Conferma & Procedi",
+                panelSilhTitle: "Sagoma Corpo",
+                btnAdd: "Aggiungi",
+                btnErase: "Cancella",
+                btnResetSilh: "Ripristina Sagoma",
+                lblBrushPreview: "Anteprima Dimensione Pennello",
+                lblMin: "Min",
+                lblMax: "Max",
+                btnCloseSilh: "Chiudi Sagoma",
+                panelExportTitle: "Esporta",
+                btnSaveCameraRoll: "Salva nel Rullino",
+                btnCloseExport: "Chiudi Esportazione",
+                lblTextures: "Texture",
+                lblTattooLayer: "Livello Tatuaggio",
+                btnBody: "Corpo",
+                btnTattoo: "Tatuaggio",
+                lblPresets: "Preset",
+                btnCloseTextures: "Chiudi Texture",
+                dockCancel: "Annulla",
+                dockSave: "Salva",
+                tutGotIt: "Capito",
+                tutNext: "Avanti",
+                tutBack: "Indietro",
+                loaderLoadingPreset: "Caricamento Preset...",
+                loaderAnalysisFailed: "Analisi fallita.<br>Riprova.",
+                loaderProcessing: "Elaborazione sagoma...",
+                loaderCompleted: "Completato!",
+                loaderModel: "Caricamento modello IA...",
+                loaderModelError: "Errore modello IA.",
+                loaderAnalyzingShape: "Analisi della forma del corpo...",
+                loaderAnalysisError: "Errore di analisi.",
+                loaderApplying: "Applicazione stile...",
+                loaderErrorLoadingImg: "Errore nel caricamento dell'immagine",
+                lblZoom: "ZOOM",
+                lblRotate: "RUOTA",
+                modePreset: "Modalità: Preset 🔄",
+                modeOwn: "Modalità: Tuo Tattoo 🔄",
+                tutSteps: [
+                    { title: "1. Carica Corpo", desc: "Inizia caricando una foto della parte del corpo che vuoi tatuare usando il pulsante 'Corpo'." },
+                    { title: "2. Sagoma Automatica", desc: "L'IA rileva automaticamente i bordi del corpo. Usa lo slider 'Adattamento Sagoma' per espandere o contrarre la maschera del corpo per un adattamento perfetto." },
+                    { title: "3. Carica Tatuaggio", desc: "Tocca 'Tatuaggio' per caricare il tuo disegno, o scegli tra i Preset disponibili nel menu." },
+                    { title: "4. Stile e Sfondo", desc: "Scegli l'effetto:<br>• <b>Originale:</b> Nessuna modifica<br>• <b>A Colori:</b> Rimuove lo sfondo bianco<br>• <b>Sottile/Spesso:</b> Converte in stencil nero puro." },
+                    { title: "5. Posizione e Scala", desc: "Usa un dito per spostare il tatuaggio. Usa due dita (pizzica e ruota) per scalarlo e inclinarlo." },
+                    { title: "6. Pennello Sagoma", desc: "Se il tatuaggio fuoriesce, apri il 'Pennello Sagoma'. Puoi cancellare o aggiungere manualmente aree della sagoma del corpo in cui il tatuaggio dovrebbe essere visibile." },
+                    { title: "7. Salva Risultato", desc: "Una volta posizionato perfettamente il tatuaggio, tocca l'icona di download per salvare l'immagine finale nella tua galleria." }
+                ]
+            }
+        };
+
+        // Salvavita: manteniamo i preset fissi solo come piano di riserva in caso di errori con Google Drive
+        const DEFAULT_PRESETS = {
+            'Traditional': [
+                {name:'Eagle', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
+                {name:'Snake', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
+                {name:'Rose', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'}
+            ],
+            'Japanese': [
+                {name:'Dragon', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
+                {name:'Koi', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
+                {name:'Oni', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
+                {name:'Geisha', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
+                {name:'Samurai', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
+                {name:'Hannya', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
+                {name:'Tiger', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
+                {name:'Cherry Blossom', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
+                {name:'Lotus', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
+                {name:'Foo Dog', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
+                {name:'Crane', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
+                {name:'Kabuki', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'}
+            ],
+            'Realism': [
+                {name:'Lion', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
+                {name:'Wolf', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'}
+            ]
+        };
+
+        // Permettiamo all'app di aggiornare dinamicamente il menu in tempo reale da Drive
+        let PRESETS = {};
+
+        let tutorialSteps = [...translations['en'].tutSteps];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+            const mainContainer = document.querySelector('.main-container');
+            
+            // --- VARIABILI TOGGLE MODALITA' ---
+            const modeToggleBtn = document.getElementById('mode-toggle-btn');
+            const presetDivider = document.getElementById('preset-divider');
+            
+            const canvas = document.getElementById('main-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const photoInput = document.getElementById('photoInput');
+            const tattooInput = document.getElementById('tattooInput');
+            
+            const loaderOverlay = document.getElementById('loader-overlay');
+            const loaderText = document.getElementById('loader-text');
+            const loaderSpinner = document.getElementById('loader-spinner');
+            const progressBarContainer = document.querySelector('.progress-bar-container');
+            const progressBar = document.getElementById('progress-bar');
+            const progressPercent = document.getElementById('progress-percent');
+
+            // --- LANGUAGE SELECTOR ELEMENTS ---
+            const langToggleBtn = document.getElementById('lang-toggle-btn');
+            const langDropdown = document.getElementById('lang-dropdown');
+            const currentLangFlag = document.getElementById('current-lang-flag');
+
+            // --- DESKTOP CONTROLS ---
+            const desktopControls = document.getElementById('desktop-controls');
+            const zoomSlider = document.getElementById('zoom-slider');
+            const btnRotCcw = document.getElementById('btn-rot-ccw');
+            const btnRotCw = document.getElementById('btn-rot-cw');
+
+            // --- GLASS MENU ELEMENTS ---
+            const menuToggleBtn = document.getElementById('menu-toggle-btn');
+            const glassMenu = document.getElementById('glass-menu');
+            const btnUploadTattoo = document.getElementById('btn-upload-tattoo');
+            const btnUploadBody = document.getElementById('btn-upload-body'); // NEW REFERENCE
+            const categorySelect = document.getElementById('category-select');
+            const presetContainer = document.getElementById('preset-palette-container');
+            const presetPaletteContainer = document.getElementById('preset-palette-container');
+
+            // --- LOGICA TOGGLE MODALITA' ---
+            let isPresetMode = true;
+
+            function applyAppMode() {
+                if (!modeToggleBtn) return;
+                if (isPresetMode) {
+                    btnUploadTattoo.classList.add('hidden');
+                    if(presetDivider) presetDivider.classList.remove('hidden');
+                    categorySelect.classList.remove('hidden');
+                    presetPaletteContainer.classList.remove('hidden');
+                } else {
+                    btnUploadTattoo.classList.remove('hidden');
+                    if(presetDivider) presetDivider.classList.add('hidden');
+                    categorySelect.classList.add('hidden');
+                    presetPaletteContainer.classList.add('hidden');
+                }
+            }
+
+            if (modeToggleBtn) {
+                modeToggleBtn.addEventListener('click', () => {
+                    isPresetMode = !isPresetMode;
+                    applyAppMode();
+                });
+            }
+
+            function applyTranslations() {
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (translations[currentLang] && translations[currentLang][key]) {
+                        el.innerHTML = translations[currentLang][key];
+                    }
+                });
+
+                tutorialSteps.forEach((step, index) => {
+                    step.title = translations[currentLang].tutSteps[index].title;
+                    step.desc = translations[currentLang].tutSteps[index].desc;
+                });
+                
+                if (!document.getElementById('tutorial-overlay').classList.contains('hidden')) {
+                    updateTutorialUI();
+                }
+
+                applyAppMode();
+            }
+
+            langToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isVisible = langDropdown.style.opacity === '1';
+                if (isVisible) {
+                    langDropdown.style.opacity = '0';
+                    langDropdown.style.pointerEvents = 'none';
+                    langDropdown.style.transform = 'scale(0.95)';
+                } else {
+                    langDropdown.style.opacity = '1';
+                    langDropdown.style.pointerEvents = 'auto';
+                    langDropdown.style.transform = 'scale(1)';
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#lang-dropdown') && !e.target.closest('#lang-toggle-btn')) {
+                    langDropdown.style.opacity = '0';
+                    langDropdown.style.pointerEvents = 'none';
+                    langDropdown.style.transform = 'scale(0.95)';
+                }
+            });
+
+            document.querySelectorAll('.lang-option').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentLang = btn.getAttribute('data-lang');
+                    currentLangFlag.textContent = currentLang === 'en' ? '🇬🇧' : '🇮🇹';
+                    langDropdown.style.opacity = '0';
+                    langDropdown.style.pointerEvents = 'none';
+                    langDropdown.style.transform = 'scale(0.95)';
+                    applyTranslations();
+                });
+            });
+
+            const segmentFab = document.getElementById('segment-fab');
+            const segmentMenu = document.getElementById('segment-menu');
+            const downloadFab = document.getElementById('download-fab');
+            const downloadMenu = document.getElementById('download-menu');
+            const downloadBtn = document.getElementById('download-btn');
+
+            const tutorialFab = document.getElementById('tutorial-fab');
+            const tutorialOverlay = document.getElementById('tutorial-overlay');
+            const tutTitle = document.getElementById('tut-title');
+            const tutDesc = document.getElementById('tut-desc');
+            const tutIconContainer = document.getElementById('tut-icon-container');
+            const tutDots = document.getElementById('tut-dots');
+            const tutPrevBtn = document.getElementById('tut-prev-btn');
+            const tutNextBtn = document.getElementById('tut-next-btn');
+            const tutSkipBtn = document.getElementById('tut-skip-btn');
+            
+            const addAreaBtn = document.getElementById('add-area-btn');
+            const removeAreaBtn = document.getElementById('remove-area-btn');
+            const brushSizeSlider = document.getElementById('brush-size-slider');
+            const clearAreaBtn = document.getElementById('clear-area-btn');
+            const dockConfirmBtn = document.getElementById('dock-confirm-btn');
+            const dockCancelBtn = document.getElementById('dock-cancel-btn');
+            
+            const brushIndicator = document.getElementById('brush-indicator');
+            const brushControls = document.getElementById('brush-controls');
+            const brushSizeControls = document.getElementById('brush-size-controls');
+
+            const adjustStepPanel = document.getElementById('adjust-step-panel');
+            const areaAdjustSlider = document.getElementById('area-adjust-slider');
+            const finishAdjustBtn = document.getElementById('finish-adjust-btn');
+            const uiDockContainer = document.getElementById('top-right-controls');
+            const editModeDock = document.getElementById('edit-mode-dock');
+            
+            const globalBackBtn = document.getElementById('global-back-btn');
+
+            const modalOverlay = document.getElementById('custom-modal-overlay');
+            const modalCancelBtn = document.getElementById('modal-cancel-btn');
+            const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+
+            // --- IMG PROCESS OVERLAY ELEMENTS ---
+            const imgProcOverlay = document.getElementById('img-proc-overlay');
+            const cardOptionOriginal = document.getElementById('card-option-original');
+            const previewOptOriginal = document.getElementById('preview-opt-original');
+            const cardOptionSoft = document.getElementById('card-option-soft');
+            const previewOptSoft = document.getElementById('preview-opt-soft');
+            const cardOptionMid = document.getElementById('card-option-mid');
+            const previewOptMid = document.getElementById('preview-opt-mid');
+            const cardOptionBold = document.getElementById('card-option-bold');
+            const previewOptBold = document.getElementById('preview-opt-bold');
+            const btnCancelOverlay = document.getElementById('btn-cancel-overlay');
+            const btnConfirmOverlay = document.getElementById('btn-confirm-overlay');
+
+            let pendingRawImageSrc = null;
+            let currentSelection = null;
+            let currentAppState = 'STEP1'; 
+            let isMenuForcedOpen = true; 
+            let isInitialUpload = true; 
+            let photoImage = new Image();
+            let tattooImage = new Image();
+            
+            let originalTattooSource = null; 
+            let currentBlackLevel = 1;
+
+            let tattooBitmap = null; // AGGIUNTO: Cache GPU per il tatuaggio
+            let isBodyProcessed = false; // AGGIUNTO: Controllo risoluzione
+
+            let segmentationResult = null;
+            let segmenter = null;
+            let progressInterval = null;
+
+            let bodyMaskCanvas = document.createElement('canvas');
+            let bodyMaskCtx = bodyMaskCanvas.getContext('2d');
+            let userMaskCanvas = document.createElement('canvas');
+            let userMaskCtx = userMaskCanvas.getContext('2d');
+
+            let tattooProps = { relX: 0.5, relY: 0.5, scale: 1, rotation: 0, opacity: 0.8 };
+            let imageRenderProps = { x: 0, y: 0, width: 0, height: 0 };
+            let transformMode = null, transformStart = {};
+            let isDefiningZones = false;
+            let isBrushing = false;
+            let brushMode = 'add'; 
+            let brushSize = 40;
+            let lastBrushPos = null;
+            let userMaskSnapshot = null;
+            let brushCursorPos = null;
+            let isSegmentMenuLocked = false;
+            let isExporting = false; 
+
+            // LOGICA VISIBILITÀ CONTROLLI PC
+            function updateDesktopControlsVisibility() {
+                if (isMobile) {
+                    desktopControls.classList.add('hidden');
+                    return;
+                }
+                const isDockVisible = uiDockContainer.classList.contains('visible-dock');
+                
+                // Show if we have a tattoo, main dock is visible, and we are in the main editor state
+                if (isDockVisible && tattooImage.src && !isDefiningZones && currentAppState === 'EDITOR') {
+                    desktopControls.classList.remove('hidden');
+                    setTimeout(() => desktopControls.style.opacity = '1', 10);
+                } else {
+                    desktopControls.style.opacity = '0';
+                    setTimeout(() => { if(desktopControls.style.opacity === '0') desktopControls.classList.add('hidden'); }, 300);
+                }
+            }
+
+            // GESTIONE SLIDER E BOTTONI PC
+            zoomSlider.addEventListener('input', (e) => {
+                tattooProps.scale = parseFloat(e.target.value);
+                draw(); // Triggera un draw leggero durante lo scroll (protetto da RAF)
+            });
+            // MODIFICA MINIMA: Assicuriamo un frame perfetto ed incontaminato non appena rilasci lo slider su PC
+            zoomSlider.addEventListener('change', () => {
+                setTimeout(executeDraw, 50);
+            });
+
+            let rotInterval = null;
+            const startRot = (dir) => {
+                tattooProps.rotation += dir * 0.05;
+                draw();
+                rotInterval = setInterval(() => {
+                    tattooProps.rotation += dir * 0.05;
+                    draw();
+                }, 50);
+            };
+            const stopRot = () => clearInterval(rotInterval);
+
+            btnRotCw.addEventListener('mousedown', () => startRot(1));
+            btnRotCw.addEventListener('mouseup', stopRot);
+            btnRotCw.addEventListener('mouseleave', stopRot);
+
+            btnRotCcw.addEventListener('mousedown', () => startRot(-1));
+            btnRotCcw.addEventListener('mouseup', stopRot);
+            btnRotCcw.addEventListener('mouseleave', stopRot);
+
+
+            // INITIALIZATION: IMMEDIATELY SHOW APP AND LOCK MENU FOR STEP 1
+            document.body.classList.add('app-active');
+            mainContainer.classList.remove('hidden');
+            glassMenu.classList.add('visible');
+            glassMenu.classList.add('menu-locked-step1');
+            btnUploadBody.classList.add('pulsing-btn');
+            
+            tutorialFab.classList.add('dock-disabled');
+            menuToggleBtn.classList.remove('dock-disabled');
+            document.getElementById('close-glass-menu-btn').classList.add('hidden');
+            
+            const initDefaultBackground = () => {
+                const defaultUrl = "https://images.squarespace-cdn.com/content/v1/65ca6e41558ea420ef592763/ec97f88c-58fd-46ae-8657-cbb9490153d9/Achromatic-3.jpg";
+
+                photoImage.crossOrigin = "Anonymous";
+                isBodyProcessed = false;
+                
+                photoImage.onload = () => {
+                    adjustContainerHeight();
+                    setupCanvasAndImageProps();
+                    ctx.drawImage(photoImage, 0, 0, canvas.width, canvas.height);
+                };
+                
+                photoImage.src = defaultUrl;
+            };
+            
+            initDefaultBackground();
+            applyTranslations(); // Set default strings explicitly 
+
+            function setAppState(newState) {
+                currentAppState = newState;
+                if (currentAppState === 'EDITOR') {
+                    globalBackBtn.classList.remove('hidden');
+                    // RIMOSSO IL COMANDO CHE NASCONDEVA IL BOTTONE
+                } else {
+                    globalBackBtn.classList.add('hidden');
+                    // RIMOSSO IL COMANDO CHE NASCONDEVA IL BOTTONE
+                }
+                updateDesktopControlsVisibility();
+            }
+
+            globalBackBtn.addEventListener('click', () => {
+                if (currentAppState === 'EDITOR') {
+                    modalOverlay.classList.remove('hidden');
+                }
+            });
+
+            // Chiudi il modal dell'errore API in sicurezza
+            document.getElementById('api-error-close-btn').addEventListener('click', () => {
+                document.getElementById('api-error-modal-overlay').classList.add('hidden');
+            });
+
+            const MAX_PROCESSING_DIMENSION = 1920; 
+
+            // --- MENU TOGGLING ---
+            menuToggleBtn.addEventListener('click', () => {
+                const isOpening = !glassMenu.classList.contains('visible');
+                closeAllMenus();
+                if(isOpening) {
+                    glassMenu.classList.add('visible');
+                    menuToggleBtn.classList.add('active');
+                }
+            });
+
+            btnUploadTattoo.addEventListener('click', () => {
+                tattooInput.click();
+            });
+            
+            btnUploadBody.addEventListener('click', () => {
+                photoInput.click();
+            });
+
+            // --- PRESET LOGIC ---
+            // ATTENZIONE: Google Drive impedisce di leggere le cartelle via web senza un'API Key per motivi di sicurezza.
+            // Inserisci qui la tua API Key di Google Cloud per attivare il Drive Dinamico.
+            const GOOGLE_DRIVE_API_KEY = 'AIzaSyBJFeOfENIvfzunniWaWQ6sj9M-oH4CJAo'; 
+            const DRIVE_FOLDER_ID = '1qDyoMFr2pT-iR_e6FTG3TnnQdPy6J0jZ';
+
+            function initPresetMenu() {
+                categorySelect.innerHTML = '';
+                Object.keys(PRESETS).forEach(c=>{
+                    const o=document.createElement('option');
+                    o.value=o.textContent=c;
+                    categorySelect.appendChild(o);
+                });
+                
+                // Aggiungiamo il listener solo la prima volta
+                if (!categorySelect.dataset.listenerAdded) {
+                    categorySelect.addEventListener('change', (e) => populatePresets(e.target.value));
+                    categorySelect.dataset.listenerAdded = "true";
+                }
+                
+                if (Object.keys(PRESETS).length > 0) {
+                    populatePresets(Object.keys(PRESETS)[0]);
+                }
+            }
+
+            async function loadDynamicPresets() {
+                if (!GOOGLE_DRIVE_API_KEY) {
+                    // Sistema "salvavita": se manca l'API Key, usa le immagini di default per non rompere l'app
+                    PRESETS = DEFAULT_PRESETS;
+                    initPresetMenu();
+                    return;
+                }
+
+                try {
+                    // 1. Chiede a Drive la lista delle cartelle all'interno del tuo link
+                    const folderQuery = `'${DRIVE_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'`;
+                    const folderUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(folderQuery)}&key=${GOOGLE_DRIVE_API_KEY}&fields=files(id,name)`;
+                    const folderRes = await fetch(folderUrl);
+                    if (!folderRes.ok) {
+                        const err = await folderRes.json();
+                        console.error("Dettagli errore Drive:", err);
+                        
+                        // Sostituiamo il "vietato" alert() del browser con il nostro Modal pulito
+                        if (err.error && err.error.code === 403 && err.error.message.includes("has not been used in project")) {
+                            document.getElementById('api-error-modal-overlay').classList.remove('hidden');
+                        }
+                        
+                        throw new Error("Errore API Cartelle.");
+                    }
+                    const folderData = await folderRes.json();
+                    
+                    let tempPresets = {};
+                    
+                    // 2. Per ogni cartella, chiede a Drive la lista delle immagini (.png, .jpg) al suo interno
+                    for (let folder of folderData.files) {
+                        tempPresets[folder.name] = [];
+                        const filesQuery = `'${folder.id}' in parents and mimeType contains 'image/'`;
+                        const filesUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(filesQuery)}&key=${GOOGLE_DRIVE_API_KEY}&fields=files(id,name)`;
+                        const filesRes = await fetch(filesUrl);
+                        
+                        if (filesRes.ok) {
+                            const filesData = await filesRes.json();
+                            filesData.files.forEach(file => {
+                                tempPresets[folder.name].push({
+                                    name: file.name.replace(/\.[^/.]+$/, ""), // Rimuove .jpg/.png dal nome mostrato
+                                    img: `https://drive.google.com/uc?id=${file.id}` // Link per sbloccare l'immagine tramite il proxy WSRV
+                                });
+                            });
+                        }
+                    }
+                    
+                    if (Object.keys(tempPresets).length > 0) {
+                        PRESETS = tempPresets;
+                    } else {
+                        PRESETS = DEFAULT_PRESETS;
+                    }
+                    initPresetMenu();
+
+                } catch (e) {
+                    console.error("Lettura Drive fallita, attivazione Salvavita:", e);
+                    PRESETS = DEFAULT_PRESETS;
+                    initPresetMenu();
+                }
+            }
+
+            // Avvia il caricamento dinamico
+            loadDynamicPresets();
+
+            function populatePresets(cat) {
+                presetContainer.innerHTML = '';
+                PRESETS[cat].forEach(p => {
+                    const b = document.createElement('button');
+                    b.className = 'flex-shrink-0 flex flex-col items-center gap-1.5 cursor-pointer group snap-center outline-none';
+                    b.title = p.name;
+                    
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'w-20 h-20 rounded-xl border-2 border-white/50 shadow-md group-hover:border-white transition-all transform group-hover:scale-105 overflow-hidden bg-white flex items-center justify-center';
+                    
+                    const i = document.createElement('img');
+                    // MODIFICA MINIMA: Usiamo il proxy anche per le miniature per sbloccarne la visualizzazione preventiva
+                    i.src = 'https://wsrv.nl/?url=' + encodeURIComponent(p.img);
+                    i.className = 'w-full h-full object-contain pointer-events-none';
+                    i.onerror = () => { i.style.display='none'; imgContainer.textContent='X'; };
+                    
+                    if (btnUploadTattoo.classList.contains('pulsing-btn')) {
+                        imgContainer.classList.add('pulsing-btn');
+                    }
+
+                    imgContainer.appendChild(i);
+
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'text-[11px] font-extrabold text-gray-700 tracking-wide';
+                    textSpan.textContent = p.name.length > 6 ? p.name.substring(0, 6) + '...' : p.name;
+
+                    b.appendChild(imgContainer);
+                    b.appendChild(textSpan);
+                    
+                    b.onclick = () => loadImgFromUrl(p.img);
+                    presetContainer.appendChild(b);
+                });
+            }
+
+            function loadImgFromUrl(url) {
+                showLoader(translations[currentLang].loaderLoadingPreset, false);
+                
+                // Proxy 1: WSRV.nl (Specializzato per immagini, aggira i blocchi di Pinterest in modo infallibile)
+                const proxy1 = 'https://wsrv.nl/?url=' + encodeURIComponent(url);
+                // Proxy 2: AllOrigins (Fallback robusto)
+                const proxy2 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+
+                const processBlob = (blob) => {
+                    // Legge il dato esattamente come fa il bottone "Upload Tattoo" per un comportamento 100% identico
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        hideLoader();
+                        openImageOverlay(e.target.result);
+                    };
+                    reader.readAsDataURL(blob);
+                };
+
+                fetch(proxy1)
+                    .then(res => {
+                        if (!res.ok) throw new Error("Proxy 1 error");
+                        return res.blob();
+                    })
+                    .then(blob => {
+                        if (!blob.type.includes('image')) throw new Error("Not an image");
+                        processBlob(blob);
+                    })
+                    .catch(() => {
+                        fetch(proxy2)
+                            .then(res => {
+                                if (!res.ok) throw new Error("Proxy 2 error");
+                                return res.blob();
+                            })
+                            .then(blob => {
+                                if (!blob.type.includes('image')) throw new Error("Not an image");
+                                processBlob(blob);
+                            })
+                            .catch(() => {
+                                hideLoader();
+                                alert(translations[currentLang].loaderErrorLoadingImg);
+                            });
+                    });
+            }
+
+            // Stored HTML representations for tutorials that don't need full translations
+            const tutHtmlMap = [
+                `<div class="w-full h-full bg-white rounded-xl border-2 border-gray-200 flex flex-col p-2 gap-2 justify-end relative overflow-hidden"><div class="absolute inset-0 bg-gray-100/50 flex items-center justify-center"><svg class="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div><div class="w-full py-1.5 bg-black rounded shadow-sm flex items-center justify-center z-10 scale-105"><span class="text-[8px] font-bold text-white uppercase tracking-wider">Body</span></div></div>`,
+                `<div class="w-full h-full bg-white rounded-xl border-2 border-gray-200 flex flex-col items-center justify-center p-2 gap-2 relative"><div class="text-[7px] font-bold text-gray-400 uppercase tracking-widest">Step 2: Silhouette Fit</div><div class="w-full flex items-center gap-1"><span class="text-[10px] text-gray-400 font-bold">-</span><div class="flex-1 h-1.5 bg-gray-200 rounded-full relative"><div class="absolute top-1/2 left-2/3 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white border border-gray-300 rounded-full shadow-sm"></div></div><span class="text-[10px] text-gray-400 font-bold">+</span></div><div class="w-3/4 h-3 bg-black rounded-full mt-1"></div></div>`,
+                `<div class="w-full h-full bg-white rounded-xl border-2 border-gray-200 flex flex-col p-2 gap-2 justify-end relative overflow-hidden"><div class="absolute inset-0 bg-gray-50 flex items-center justify-center"><svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"></circle><line x1="12" y1="22" x2="12" y2="8"></line><path d="M5 12H2a10 10 0 0 0 20 0h-3"></path></svg></div><div class="w-full py-1.5 bg-black rounded shadow-sm flex items-center justify-center z-10 scale-105"><span class="text-[8px] font-bold text-white uppercase tracking-wider">Tattoo</span></div></div>`,
+                `<div class="w-full h-full grid grid-cols-2 gap-1.5 p-1.5 bg-gray-50 rounded-xl border-2 border-gray-200"><div class="bg-white border border-gray-200 rounded-md shadow-sm flex flex-col items-center justify-center p-1"><div class="text-[5px] font-bold text-gray-700 mb-0.5">ORIGINAL</div><div class="w-5 h-5 rounded-full border-[1.5px] border-gray-400"></div></div><div class="bg-white border-2 border-black rounded-md shadow-md flex flex-col items-center justify-center p-1 relative"><div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-black rounded-full flex items-center justify-center"><span class="text-[7px] text-white font-bold">✓</span></div><div class="text-[5px] font-bold text-gray-900 mb-0.5">COLOR INK</div><div class="w-5 h-5 rounded-full border-[1.5px] border-blue-500"></div></div><div class="bg-white border border-gray-200 rounded-md shadow-sm flex flex-col items-center justify-center p-1"><div class="text-[5px] font-bold text-gray-700 mb-0.5">FINE LINE</div><div class="w-5 h-5 rounded-full border border-gray-400"></div></div><div class="bg-white border border-gray-200 rounded-md shadow-sm flex flex-col items-center justify-center p-1"><div class="text-[5px] font-bold text-gray-700 mb-0.5">BOLD LINE</div><div class="w-5 h-5 rounded-full border-[2px] border-gray-800"></div></div></div>`,
+                `<div class="w-full h-full bg-white rounded-xl border-2 border-gray-200 relative flex items-center justify-center overflow-hidden"><div class="w-12 h-12 border-2 border-dashed border-gray-400 flex items-center justify-center rotate-12 relative"><svg class="w-6 h-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg><div class="absolute -top-1.5 -left-1.5 w-3 h-3 bg-blue-500 rounded-full opacity-60"></div><div class="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-blue-500 rounded-full opacity-60"></div></div></div>`,
+                `<div class="w-full h-full bg-white rounded-xl border-2 border-gray-200 flex flex-col items-center justify-center p-1.5 gap-1.5"><div class="w-full h-10 bg-gray-100 rounded-lg relative overflow-hidden flex items-center justify-center border border-gray-200"><div class="absolute left-0 top-0 w-1/2 h-full bg-gray-300"></div><div class="absolute left-1/2 top-1/2 -translate-y-1/2 w-6 h-6 bg-gray-300 rounded-full"></div><div class="absolute left-1/2 top-1/2 -translate-y-1/2 w-4 h-4 border-[1.5px] border-black rounded-full flex items-center justify-center z-10 shadow-sm bg-white/50 backdrop-blur-sm"><span class="text-[8px] font-bold text-black pb-px">+</span></div></div><div class="flex gap-1 w-full mt-0.5"><div class="flex-1 h-3.5 bg-black rounded-md flex items-center justify-center"><span class="text-[5px] text-white font-bold uppercase">ADD</span></div><div class="flex-1 h-3.5 bg-gray-200 rounded-md flex items-center justify-center"><span class="text-[5px] text-gray-500 font-bold uppercase">ERASE</span></div></div></div>`,
+                `<div class="w-full h-full bg-gray-50 rounded-xl border-2 border-gray-200 flex flex-col items-center justify-center relative"><div class="w-14 h-14 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center z-10"><svg class="w-6 h-6 text-gray-800" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"></line></svg></div></div>`
+            ];
+
+            let currentStep = 0;
+
+            function updateTutorialUI() {
+                const step = tutorialSteps[currentStep];
+                tutTitle.textContent = step.title;
+                tutDesc.innerHTML = step.desc; 
+                
+                tutIconContainer.className = "w-28 h-28 flex items-center justify-center mb-2";
+                tutIconContainer.innerHTML = tutHtmlMap[currentStep];
+
+                tutPrevBtn.classList.toggle('hidden', currentStep === 0);
+                if (currentStep === tutorialSteps.length - 1) {
+                    tutNextBtn.textContent = translations[currentLang].tutGotIt;
+                } else {
+                    tutNextBtn.textContent = translations[currentLang].tutNext;
+                }
+                tutDots.innerHTML = '';
+                tutorialSteps.forEach((_, idx) => {
+                    const dot = document.createElement('div');
+                    dot.classList.add('dot');
+                    if (idx === currentStep) dot.classList.add('active');
+                    tutDots.appendChild(dot);
+                });
+            }
+
+            tutorialFab.addEventListener('click', () => {
+                currentStep = 0;
+                updateTutorialUI();
+                tutorialOverlay.classList.remove('hidden');
+                tutorialFab.classList.add('active'); 
+                closeAllMenus();
+            });
+
+            tutNextBtn.addEventListener('click', () => {
+                if (currentStep < tutorialSteps.length - 1) {
+                    currentStep++;
+                    updateTutorialUI();
+                } else {
+                    tutorialOverlay.classList.add('hidden');
+                    tutorialFab.classList.remove('active'); 
+                }
+            });
+
+            tutPrevBtn.addEventListener('click', () => {
+                if (currentStep > 0) {
+                    currentStep--;
+                    updateTutorialUI();
+                }
+            });
+
+            tutSkipBtn.addEventListener('click', () => {
+                tutorialOverlay.classList.add('hidden');
+                tutorialFab.classList.remove('active'); 
+            });
+
+            tutorialOverlay.addEventListener('click', (e) => {
+                if (e.target === tutorialOverlay) {
+                    tutorialOverlay.classList.add('hidden');
+                    tutorialFab.classList.remove('active');
+                }
+            });
+
+            const allMenus = [segmentMenu, downloadMenu, glassMenu]; 
+            const allFabs = [segmentFab, downloadFab, menuToggleBtn];
+
+            function closeAllMenus() {
+                if (isMenuForcedOpen) return;
+
+                allMenus.forEach(menu => menu.classList.remove('visible'));
+                allFabs.forEach(fab => {
+                    fab.classList.remove('open');
+                    fab.classList.remove('active');
+                    fab.classList.remove('disabled');
+                });
+            }
+            
+            async function handleSegmentationResults(results) {
+                clearInterval(progressInterval);
+                if (results && results.segmentationMask) {
+                    updateProgress(95);
+                    loaderText.innerHTML = translations[currentLang].loaderProcessing;
+                    segmentationResult = results.segmentationMask;
+                    await onSegmentationReady();
+                    updateProgress(100);
+                    loaderText.innerHTML = translations[currentLang].loaderCompleted;
+                    setTimeout(hideLoader, 700);
+                } else {
+                    showLoader(translations[currentLang].loaderAnalysisFailed, false, true);
+                }
+            }
+
+            async function initializeModel() {
+                showLoader(translations[currentLang].loaderModel, false, true);
+                try {
+                    const selfieSegmentation = new window.SelfieSegmentation({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`});
+                    segmenter = selfieSegmentation;
+                    await segmenter.setOptions({ modelSelection: 1 });
+                    segmenter.onResults(handleSegmentationResults);
+                    await segmenter.initialize();
+                    hideLoader();
+                } catch (e) {
+                    showLoader(translations[currentLang].loaderModelError, false, true);
+                }
+            }
+
+            function adjustContainerHeight() {
+                if (!photoImage.src || photoImage.naturalWidth === 0) return;
+                
+                const container = document.getElementById('canvas-glass-container');
+                const isMobileLayout = window.innerWidth < 768;
+                
+                let maxWidth, maxHeight;
+                
+                if (isMobileLayout) {
+                    maxWidth = window.innerWidth - 30; 
+                    maxHeight = window.innerHeight - 180; 
+                } else {
+                    maxWidth = window.innerWidth * 0.9; 
+                    maxHeight = window.innerHeight - 180; 
+                }
+
+                if (window.innerHeight < 500) {
+                    maxHeight = window.innerHeight - 100;
+                }
+
+                const imgRatio = photoImage.naturalWidth / photoImage.naturalHeight;
+                
+                let finalW = maxWidth;
+                let finalH = finalW / imgRatio;
+                
+                if (finalH > maxHeight) {
+                    finalH = maxHeight;
+                    finalW = finalH * imgRatio;
+                }
+                
+                container.style.width = `${finalW}px`;
+                container.style.height = `${finalH}px`;
+            }
+
+            function showLoader(message, showProgress = false, showSpinner = false) {
+                loaderText.innerHTML = message;
+                loaderSpinner.style.display = showSpinner ? 'block' : 'none';
+                progressBarContainer.style.display = showProgress ? 'block' : 'none';
+                progressPercent.style.display = showProgress ? 'block' : 'none';
+                if (showProgress) updateProgress(0);
+                loaderOverlay.classList.remove('hidden-loader');
+            }
+
+            function hideLoader() {
+                loaderOverlay.classList.add('hidden-loader');
+                if (progressInterval) clearInterval(progressInterval);
+            }
+
+            function updateProgress(percent) {
+                const p = Math.min(100, Math.max(0, percent));
+                progressBar.style.width = p + '%';
+                progressPercent.textContent = Math.round(p) + '%';
+            }
+
+            photoInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                btnUploadBody.classList.remove('pulsing-btn');
+                isBodyProcessed = false; // Reset per ogni nuovo upload
+
+                const fileUrl = URL.createObjectURL(file);
+                photoImage.src = fileUrl;
+
+                photoImage.onload = async () => {
+                    const { naturalWidth: w, naturalHeight: h } = photoImage;
+                    
+                    // MODIFICA MINIMA: Upscale/Downscale intelligente e infallibile.
+                    // Garantisce una tela di sfondo (Canvas) sempre in Altissima Definizione (1440p-1920p).
+                    // Risolve alla radice il problema del tatuaggio "sgranato" se inserito in una foto piccola.
+                    if (!isBodyProcessed) {
+                        const MIN_DIM = 1440;
+                        const MAX_DIM = 1920;
+                        const maxSide = Math.max(w, h);
+
+                        if (maxSide < MIN_DIM || maxSide > MAX_DIM) {
+                            isBodyProcessed = true;
+                            const targetDim = maxSide < MIN_DIM ? MIN_DIM : MAX_DIM;
+                            const ratio = targetDim / maxSide;
+                            const newWidth = Math.round(w * ratio);
+                            const newHeight = Math.round(h * ratio);
+
+                            const resizeCanvas = document.createElement('canvas');
+                            resizeCanvas.width = newWidth; resizeCanvas.height = newHeight;
+                            const rCtx = resizeCanvas.getContext('2d');
+                            rCtx.imageSmoothingEnabled = true;
+                            rCtx.imageSmoothingQuality = 'high';
+                            rCtx.drawImage(photoImage, 0, 0, newWidth, newHeight);
+
+                            photoImage.src = resizeCanvas.toDataURL('image/jpeg', 0.95);
+                            return; // Attende il ricaricamento istantaneo con risoluzione HD perfetta
+                        } else {
+                            isBodyProcessed = true;
+                        }
+                    }
+
+                    URL.revokeObjectURL(fileUrl); // Libera memoria
+                    
+                    adjustContainerHeight();
+                    setupCanvasAndImageProps();
+                    const orientationCanvas = document.createElement('canvas');
+                    orientationCanvas.width = photoImage.naturalWidth;
+                    orientationCanvas.height = photoImage.naturalHeight;
+                    orientationCanvas.getContext('2d').drawImage(photoImage, 0, 0);
+
+                    if (progressInterval) clearInterval(progressInterval);
+                    let currentProgress = 0;
+                    showLoader(translations[currentLang].loaderAnalyzingShape, true, false);
+                    updateProgress(currentProgress);
+                    const estimatedTime = 3000; const progressSteps = 90; 
+                    progressInterval = setInterval(() => {
+                        currentProgress += (progressSteps / (estimatedTime / 50));
+                        if (currentProgress < progressSteps) updateProgress(currentProgress);
+                        else clearInterval(progressInterval);
+                    }, 50);
+
+                    try {
+                        if (segmenter) await segmenter.send({image: orientationCanvas});
+                    } catch (error) {
+                        showLoader(translations[currentLang].loaderAnalysisError, false, true);
+                        clearInterval(progressInterval);
+                    }
+                };
+                
+                e.target.value = null;
+            });
+
+            // --- IMAGE PROCESSING LOGIC ---
+            function processTattooFilter(imgSource, level) {
+                return new Promise((resolve) => {
+                    const tempImg = new Image();
+                    tempImg.crossOrigin = "Anonymous";
+                    tempImg.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = tempImg.naturalWidth;
+                        canvas.height = tempImg.naturalHeight;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(tempImg, 0, 0);
+                        
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const data = imageData.data;
+
+                        for (let i = 0; i < data.length; i += 4) {
+                            const r = data[i];
+                            const g = data[i + 1];
+                            const b = data[i + 2];
+                            
+                            const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+                            
+                            if (level === 1) { // Color Tattoo
+                                const minChan = Math.min(r, g, b);
+                                const threshold = 230;
+                                
+                                if (minChan < threshold) {
+                                    data[i + 3] = 255;
+                                } else {
+                                    const range = 255 - threshold;
+                                    let alpha = ((255 - minChan) / range) * 255;
+                                    if(alpha < 0) alpha = 0;
+                                    data[i + 3] = alpha;
+                                }
+                            } else {
+                                // Stencil Modes
+                                let gamma = 1.0;
+                                if (level === 0) { gamma = 1.0; } // Soft
+                                else if (level === 2) { gamma = 5.0; } // Bold
+
+                                let normLum = luminance / 255;
+                                normLum = Math.pow(normLum, gamma);
+                                let alpha = (1 - normLum) * 255;
+                                
+                                if (alpha < 0) alpha = 0;
+                                if (alpha > 255) alpha = 255;
+
+                                data[i] = 0; 
+                                data[i + 1] = 0; 
+                                data[i + 2] = 0; 
+                                data[i + 3] = alpha; 
+                            }
+                        }
+                        ctx.putImageData(imageData, 0, 0);
+                        resolve(canvas.toDataURL());
+                    };
+                    tempImg.src = imgSource;
+                });
+            }
+
+            const openImageOverlay = async (rawSrc) => {
+                pendingRawImageSrc = rawSrc;
+                currentSelection = null;
+                setAppState('FILTER');
+                
+                [cardOptionOriginal, cardOptionSoft, cardOptionMid, cardOptionBold].forEach(c => c.classList.remove('selected'));
+                btnConfirmOverlay.disabled = true;
+
+                previewOptOriginal.src = rawSrc;
+                
+                previewOptSoft.style.opacity = '0.5';
+                previewOptMid.style.opacity = '0.5';
+                previewOptBold.style.opacity = '0.5';
+                
+                glassMenu.classList.remove('visible');
+
+                imgProcOverlay.classList.remove('inactive');
+                imgProcOverlay.classList.add('active');
+
+                const [softSrc, midSrc, boldSrc] = await Promise.all([
+                    processTattooFilter(rawSrc, 0),
+                    processTattooFilter(rawSrc, 1),
+                    processTattooFilter(rawSrc, 2)
+                ]);
+
+                previewOptSoft.src = softSrc;
+                previewOptMid.src = midSrc;
+                previewOptBold.src = boldSrc;
+                
+                previewOptSoft.style.opacity = '1';
+                previewOptMid.style.opacity = '1';
+                previewOptBold.style.opacity = '1';
+            };
+
+            const closeImageOverlay = () => {
+                imgProcOverlay.classList.remove('active');
+                imgProcOverlay.classList.add('inactive');
+                pendingRawImageSrc = null;
+                currentSelection = null;
+            };
+
+            const selectOption = (cardEl, useFilter, level) => {
+                [cardOptionOriginal, cardOptionSoft, cardOptionMid, cardOptionBold].forEach(el => el.classList.remove('selected'));
+                cardEl.classList.add('selected');
+                currentSelection = { useFilter, level };
+                btnConfirmOverlay.disabled = false;
+            };
+
+            const finalizeImageLoad = async () => {
+                if (!pendingRawImageSrc || !currentSelection) return;
+                
+                const selectedOption = currentSelection;
+                const rawSrc = pendingRawImageSrc;
+
+                showLoader(translations[currentLang].loaderApplying, false, true);
+                closeImageOverlay();
+
+                let finalSrc = rawSrc;
+                if (selectedOption.useFilter) {
+                    finalSrc = await processTattooFilter(rawSrc, selectedOption.level);
+                }
+
+                originalTattooSource = rawSrc; 
+                currentBlackLevel = selectedOption.level;
+
+                tattooImage.onload = async () => {
+                      // MODIFICA MINIMA: GPU Cache per proteggere il tatuaggio dal bug "Mipmap Purging" su PC.
+                      // Convertiamo il tatuaggio base64 in un ImageBitmap residente fisso nella Scheda Video,
+                      // così Chrome non "butterà" mai via i suoi dettagli quando usi lo zoom!
+                      if (tattooBitmap && tattooBitmap.close) {
+                          tattooBitmap.close();
+                      }
+                      if (window.createImageBitmap) {
+                          try {
+                              // Aggiunti i parametri di "blocco totale": impediscono al browser PC di alterare, 
+                              // comprimere o "ottimizzare" la trasparenza e i colori durante il caricamento nella GPU.
+                              tattooBitmap = await createImageBitmap(tattooImage, { 
+                                  premultiplyAlpha: 'none',
+                                  colorSpaceConversion: 'none',
+                                  imageOrientation: 'none'
+                              });
+                          } catch(e) {
+                              tattooBitmap = tattooImage;
+                          }
+                      } else {
+                          tattooBitmap = tattooImage;
+                      }
+
+                      hideLoader();
+                      setAppState('EDITOR');
+                      
+                      isMenuForcedOpen = false;
+                      document.getElementById('close-glass-menu-btn').classList.remove('hidden');
+                      btnUploadTattoo.classList.remove('pulsing-btn');
+                      Array.from(presetPaletteContainer.children).forEach(child => child.querySelector('div').classList.remove('pulsing-btn'));
+                      
+                    if (photoImage.naturalHeight > 0 && tattooImage.naturalHeight > 0) {
+                        const targetHeight = photoImage.naturalHeight / 3;
+                        tattooProps.scale = targetHeight / tattooImage.naturalHeight;
+                    } else tattooProps.scale = 1;
+                    tattooProps.rotation = 0;
+
+                    // INIZIALIZZAZIONE SLIDER PC PER ZOOM (Dinamico basato sulla scala inziale del tattoo)
+                    zoomSlider.min = (tattooProps.scale * 0.1).toFixed(4);
+                    zoomSlider.max = (tattooProps.scale * 5.0).toFixed(4);
+                    zoomSlider.value = tattooProps.scale;
+
+                    if (photoImage.src) draw();
+                    checkEnableControls();
+                    
+                    uiDockContainer.classList.add('visible-dock');
+                    
+                    glassMenu.classList.remove('visible');
+                    menuToggleBtn.classList.remove('active');
+
+                    // Mostra controlli PC se presenti
+                    updateDesktopControlsVisibility();
+                };
+                
+                tattooImage.src = finalSrc;
+            };
+
+            cardOptionOriginal.addEventListener('click', () => selectOption(cardOptionOriginal, false, 0));
+            cardOptionSoft.addEventListener('click', () => selectOption(cardOptionSoft, true, 0));
+            cardOptionMid.addEventListener('click', () => selectOption(cardOptionMid, true, 1));
+            cardOptionBold.addEventListener('click', () => selectOption(cardOptionBold, true, 2));
+
+            btnCancelOverlay.addEventListener('click', () => {
+                closeImageOverlay();
+                tattooInput.value = ''; 
+
+                // MODIFICA MINIMA: Se il tatuaggio esiste già in memoria (caso: "Discard" annullato),
+                // torniamo tranquillamente alla modalità EDITOR senza bloccare la tendina.
+                if (tattooImage.src && tattooImage.naturalWidth > 0) {
+                    setAppState('EDITOR');
+                    isMenuForcedOpen = false;
+                    document.getElementById('close-glass-menu-btn').classList.remove('hidden');
+                    btnUploadTattoo.classList.remove('pulsing-btn');
+                    Array.from(presetPaletteContainer.children).forEach(child => child.querySelector('div').classList.remove('pulsing-btn'));
+                    uiDockContainer.classList.add('visible-dock');
+                    menuToggleBtn.classList.remove('active');
+                    draw();
+                    updateDesktopControlsVisibility();
+                } else {
+                    // Comportamento originale: se non c'è ancora nessun tatuaggio, rimani bloccato allo STEP 2
+                    setAppState('STEP2');
+                    glassMenu.classList.add('visible');
+                    isMenuForcedOpen = true;
+                    document.getElementById('close-glass-menu-btn').classList.add('hidden');
+                    btnUploadTattoo.classList.add('pulsing-btn');
+                    menuToggleBtn.classList.add('active');
+                }
+            });
+            
+            btnConfirmOverlay.addEventListener('click', finalizeImageLoad);
+
+            tattooInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    openImageOverlay(event.target.result);
+                };
+                reader.readAsDataURL(file);
+                e.target.value = null; 
+            });
+
+            async function onSegmentationReady() {
+                tattooProps.relX = 0.5; tattooProps.relY = 0.5;
+                await unifyAndCreateBodyMask(segmentationResult);
+                userMaskCtx.clearRect(0, 0, userMaskCanvas.width, userMaskCanvas.height);
+                userMaskCtx.drawImage(bodyMaskCanvas, 0, 0);
+                areaAdjustSlider.value = 0;
+                
+                adjustStepPanel.classList.remove('hidden');
+                
+                glassMenu.classList.remove('visible');
+                isMenuForcedOpen = false;
+                document.getElementById('close-glass-menu-btn').classList.remove('hidden');
+
+                uiDockContainer.classList.remove('visible-dock');
+                
+                draw();
+                updateDesktopControlsVisibility();
+            }
+
+            finishAdjustBtn.addEventListener('click', () => {
+                adjustStepPanel.classList.add('hidden');
+                
+                if (isInitialUpload) {
+                    isInitialUpload = false;
+                    
+                    glassMenu.classList.add('visible');
+                    glassMenu.classList.remove('menu-locked-step1');
+                    btnUploadTattoo.classList.add('pulsing-btn');
+                    
+                    Array.from(presetPaletteContainer.children).forEach(child => child.querySelector('div').classList.add('pulsing-btn'));
+
+                    isMenuForcedOpen = true;
+                    document.getElementById('close-glass-menu-btn').classList.add('hidden');
+
+                    menuToggleBtn.classList.remove('dock-disabled');
+                    menuToggleBtn.classList.add('active');
+
+                    setAppState('STEP2');
+                    
+                    // MODIFICA MINIMA: Rende nuovamente visibile la barra dei bottoni in basso prima di caricare il tattoo
+                    uiDockContainer.classList.add('visible-dock');
+                } else {
+                    uiDockContainer.classList.add('visible-dock');
+                    menuToggleBtn.classList.remove('dock-disabled');
+                    checkEnableControls();
+                }
+                draw(); 
+                updateDesktopControlsVisibility();
+            });
+
+            modalCancelBtn.addEventListener('click', () => { modalOverlay.classList.add('hidden'); });
+
+            modalConfirmBtn.addEventListener('click', () => {
+                modalOverlay.classList.add('hidden');
+                if (originalTattooSource) {
+                    openImageOverlay(originalTattooSource);
+                } else {
+                    setAppState('STEP2');
+                }
+            });
+
+            function checkEnableControls() {
+                const ready = photoImage.src && tattooImage.src && segmentationResult;
+                [segmentFab, downloadFab, tutorialFab].forEach(el => {
+                    if (ready) {
+                        el.classList.remove('dock-disabled');
+                    } else {
+                        el.classList.add('dock-disabled');
+                    }
+                });
+                menuToggleBtn.classList.remove('dock-disabled');
+            }
+
+            function setupCanvasAndImageProps() {
+                const w = photoImage.naturalWidth; const h = photoImage.naturalHeight;
+                canvas.width = w; canvas.height = h;
+                [bodyMaskCanvas, userMaskCanvas].forEach(c => { c.width = w; c.height = h; });
+                imageRenderProps = { width: w, height: h, x: 0, y: 0 };
+                userMaskCtx.clearRect(0, 0, w, h);
+            }
+
+            async function unifyAndCreateBodyMask(mask) {
+                if (!mask) return;
+                const w = canvas.width, h = canvas.height;
+                const tempMaskCanvas = document.createElement('canvas');
+                tempMaskCanvas.width = w; tempMaskCanvas.height = h;
+                const tempMaskCtx = tempMaskCanvas.getContext('2d');
+                tempMaskCtx.drawImage(mask, 0, 0, w, h);
+                const maskData = tempMaskCtx.getImageData(0, 0, w, h).data;
+                const visited = new Uint8Array(w * h).fill(0);
+                const blobs = [];
+
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        const index = (y * w + x);
+                        if (visited[index] === 0 && maskData[index * 4 + 3] > 128) {
+                            const queue = [[x, y]];
+                            visited[index] = 1;
+                            let sumX = 0, sumY = 0, pointCount = 0;
+                            while (queue.length > 0) {
+                                const [cx, cy] = queue.shift();
+                                sumX += cx; sumY += cy; pointCount++;
+                                [[cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]].forEach(([nx, ny]) => {
+                                    if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+                                        const nIndex = (ny * w + nx);
+                                        if (visited[nIndex] === 0 && maskData[nIndex * 4 + 3] > 128) {
+                                            visited[nIndex] = 1; queue.push([nx, ny]);
+                                        }
+                                    }
+                                });
+                            }
+                            blobs.push({ center: { x: sumX / pointCount, y: sumY / pointCount } });
+                        }
+                    }
+                }
+                bodyMaskCtx.clearRect(0, 0, w, h);
+                bodyMaskCtx.drawImage(mask, 0, 0, w, h);
+                if (blobs.length > 1) {
+                    blobs.sort((a, b) => a.center.x - b.center.x);
+                    bodyMaskCtx.strokeStyle = 'white';
+                    bodyMaskCtx.lineWidth = 100; bodyMaskCtx.lineCap = 'round';
+                    for (let i = 0; i < blobs.length - 1; i++) {
+                        bodyMaskCtx.beginPath();
+                        bodyMaskCtx.moveTo(blobs[i].center.x, blobs[i].center.y);
+                        bodyMaskCtx.lineTo(blobs[i + 1].center.x, blobs[i + 1].center.y);
+                        bodyMaskCtx.stroke();
+                    }
+                }
+            }
+
+            // CACHE CANVASES FOR PERFORMANCE E PREVENIRE CALI DI QUALITÀ DURANTE LO ZOOM
+            const tempRenderCanvas = document.createElement('canvas');
+            const tempRenderCtx = tempRenderCanvas.getContext('2d');
+            const blurRenderCanvas = document.createElement('canvas');
+            const blurRenderCtx = blurRenderCanvas.getContext('2d');
+            const zoneRenderCanvas = document.createElement('canvas');
+            const zoneRenderCtx = zoneRenderCanvas.getContext('2d');
+
+            // MODIFICA MINIMA: Sistema Anti-Panico per il rendering (RAF)
+            // Impedisce ai browser PC di tagliare la qualità per via dei troppi aggiornamenti dello slider
+            let drawPending = false;
+            function draw() {
+                if (!photoImage.src) return;
+                if (drawPending) return;
+                drawPending = true;
+                requestAnimationFrame(() => {
+                    drawPending = false;
+                    executeDraw();
+                });
+            }
+
+            function executeDraw() {
+                if (!photoImage.src) return;
+
+                // Sincronizza le dimensioni delle tele cache con quella principale solo se necessario
+                if (tempRenderCanvas.width !== canvas.width || tempRenderCanvas.height !== canvas.height) {
+                    tempRenderCanvas.width = canvas.width; tempRenderCanvas.height = canvas.height;
+                    blurRenderCanvas.width = canvas.width; blurRenderCanvas.height = canvas.height;
+                    zoneRenderCanvas.width = canvas.width; zoneRenderCanvas.height = canvas.height;
+                }
+
+                ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(photoImage, 0, 0, canvas.width, canvas.height);
+                const previewCircle = (pos, size) => {
+                    ctx.beginPath(); ctx.arc(pos.x, pos.y, size / 2, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)'; ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                    ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+                };
+
+                if (isDefiningZones || !adjustStepPanel.classList.contains('hidden')) {
+                    zoneRenderCtx.clearRect(0, 0, canvas.width, canvas.height);
+                    zoneRenderCtx.drawImage(userMaskCanvas, 0, 0);
+                    zoneRenderCtx.globalCompositeOperation = 'source-in'; 
+                    zoneRenderCtx.fillStyle = 'rgba(8, 145, 178, 0.4)'; 
+                    zoneRenderCtx.fillRect(0, 0, canvas.width, canvas.height);
+                    zoneRenderCtx.globalCompositeOperation = 'source-over';
+                    ctx.drawImage(zoneRenderCanvas, 0, 0);
+                    
+                    if (brushCursorPos && isDefiningZones && isSegmentMenuLocked) previewCircle(brushCursorPos, brushSize);
+                } else if (tattooImage.src && segmentationResult) {
+                    const { width: tw, height: th } = calculateTattooDimensions();
+                    if (tw > 0) {
+                        const { x: tax, y: tay } = getTattooAbsolutePos();
+                        const finalMask = getFinalMask();
+                        
+                        // Render ottimizzato ad altissima qualità per il tatuaggio
+                        tempRenderCtx.clearRect(0, 0, canvas.width, canvas.height);
+                        tempRenderCtx.imageSmoothingEnabled = true; tempRenderCtx.imageSmoothingQuality = 'high';
+                        tempRenderCtx.save(); 
+                        
+                        // Ripristinate le coordinate precise (i Math.round forzavano una pixelizzazione innaturale dell'immagine)
+                        tempRenderCtx.translate(tax, tay); 
+                        tempRenderCtx.rotate(tattooProps.rotation);
+                        
+                        // MODIFICA MINIMA: Usiamo la GPU Bitmap per prevenire il collasso della qualità su PC
+                        const drawSource = tattooBitmap || tattooImage;
+                        tempRenderCtx.drawImage(drawSource, -tw / 2, -th / 2, tw, th); 
+                        tempRenderCtx.restore();
+                        
+                        // Maschera ritaglio applicata direttamente: rimosso il "blur" in tempo reale che mandava in blocco il browser costringendolo ad abbassare drasticamente la risoluzione generale
+                        tempRenderCtx.globalCompositeOperation = 'destination-in'; 
+                        tempRenderCtx.drawImage(finalMask, 0, 0);
+                        tempRenderCtx.globalCompositeOperation = 'source-over';
+                        
+                        ctx.save(); ctx.globalAlpha = tattooProps.opacity; ctx.drawImage(tempRenderCanvas, 0, 0); ctx.restore();
+                    }
+                }
+            }
+
+            function exitSegmentationMode() {
+                isDefiningZones = false; isSegmentMenuLocked = false;
+                canvas.style.cursor = 'default';
+                brushControls.classList.remove('hidden'); 
+                clearAreaBtn.classList.remove('hidden'); brushSizeControls.classList.remove('hidden');
+                closeAllMenus(); brushCursorPos = null; userMaskSnapshot = null;
+                draw();
+                updateDesktopControlsVisibility(); // <--- AGGIUNTO QUI: Riporta i comandi PC alla chiusura del menu
+            }
+
+            function applyBrush(startPos, endPos) {
+                userMaskCtx.lineCap = 'round'; userMaskCtx.lineJoin = 'round'; userMaskCtx.lineWidth = brushSize;
+                userMaskCtx.globalCompositeOperation = brushMode === 'add' ? 'source-over' : 'destination-out';
+                userMaskCtx.strokeStyle = 'white';
+                userMaskCtx.beginPath(); userMaskCtx.moveTo(startPos.x, startPos.y); userMaskCtx.lineTo(endPos.x, endPos.y); userMaskCtx.stroke();
+                draw();
+            }
+
+            function applyAreaAdjustment(v) {
+                if (!bodyMaskCanvas || bodyMaskCanvas.width === 0) return;
+                if (v === 0) {
+                    userMaskCtx.globalCompositeOperation = 'source-over';
+                    userMaskCtx.clearRect(0, 0, userMaskCanvas.width, userMaskCanvas.height);
+                    userMaskCtx.drawImage(bodyMaskCanvas, 0, 0);
+                    draw(); return;
+                }
+                const w = bodyMaskCanvas.width, h = bodyMaskCanvas.height;
+                const ac = document.createElement('canvas'); ac.width = w; ac.height = h;
+                const ax = ac.getContext('2d', { willReadFrequently: true });
+                const bA = Math.abs(v); const iE = v < 0;
+                if (iE) {
+                    ax.fillStyle = 'white'; ax.fillRect(0, 0, w, h);
+                    ax.globalCompositeOperation = 'destination-out'; ax.drawImage(bodyMaskCanvas, 0, 0, w, h);
+                } else ax.drawImage(bodyMaskCanvas, 0, 0, w, h);
+                ax.globalCompositeOperation = 'source-over'; ax.filter = `blur(${bA}px)`; ax.drawImage(ac, 0, 0); ax.filter = 'none';
+                const iD = ax.getImageData(0, 0, w, h); const d = iD.data;
+                for (let i = 0; i < d.length; i += 4) { d[i] = d[i+1] = d[i+2] = 255; d[i+3] = d[i+3] > 128 ? 255 : 0; }
+                ax.putImageData(iD, 0, 0);
+                const tempBlurCanvas = document.createElement('canvas'); tempBlurCanvas.width = w; tempBlurCanvas.height = h;
+                const tempBlurCtx = tempBlurCanvas.getContext('2d'); tempBlurCtx.drawImage(ac, 0, 0);
+                ax.clearRect(0, 0, w, h); ax.filter = 'blur(1.5px)'; ax.drawImage(tempBlurCanvas, 0, 0); ax.filter = 'none';
+                userMaskCtx.clearRect(0, 0, w, h);
+                if (iE) {
+                    userMaskCtx.fillStyle = 'white'; userMaskCtx.fillRect(0, 0, w, h);
+                    userMaskCtx.globalCompositeOperation = 'destination-out'; userMaskCtx.drawImage(ac, 0, 0);
+                } else {
+                    userMaskCtx.globalCompositeOperation = 'source-over'; userMaskCtx.drawImage(ac, 0, 0);
+                }
+                userMaskCtx.globalCompositeOperation = 'source-over';
+                draw();
+            }
+
+            let isGesture = false;
+            let initialPinchDist = 0;
+            let initialPinchAngle = 0;
+            let startScale = 1;
+            let startRotation = 0;
+
+            function setupInteractionEvents() {
+                function toggleMenu(menu, fab) {
+                    const isOpening = !menu.classList.contains('visible');
+                    if (isOpening && isDefiningZones && menu !== segmentMenu) exitSegmentationMode();
+                    closeAllMenus();
+                    if (isOpening) {
+                        menu.classList.add('visible'); fab.classList.add('open'); fab.classList.add('active');
+                        allFabs.forEach(otherFab => { if (otherFab !== fab) otherFab.classList.add('disabled'); });
+                    }
+                }
+                
+                segmentFab.addEventListener('click', () => {
+                    const isOpening = !segmentMenu.classList.contains('visible');
+                    if (isSegmentMenuLocked) return;
+                    if (isOpening) {
+                        isDefiningZones = true; canvas.style.cursor = 'default';
+                        brushControls.classList.remove('hidden'); 
+                        clearAreaBtn.classList.remove('hidden'); brushSizeControls.classList.remove('hidden');
+                        draw(); toggleMenu(segmentMenu, segmentFab);
+                        updateDesktopControlsVisibility(); // <--- AGGIUNTO QUI: Nasconde i comandi PC aprendo il menu
+                    } else exitSegmentationMode();
+                });
+                
+                document.getElementById('close-segment-btn').addEventListener('click', () => {
+                    if (isSegmentMenuLocked) return;
+                    exitSegmentationMode(); 
+                });
+                
+                downloadFab.addEventListener('click', () => toggleMenu(downloadMenu, downloadFab));
+                document.getElementById('close-download-btn').addEventListener('click', closeAllMenus);
+                
+                document.getElementById('close-glass-menu-btn').addEventListener('click', closeAllMenus);
+
+                areaAdjustSlider.addEventListener('input', () => applyAreaAdjustment(parseInt(areaAdjustSlider.value, 10)));
+
+                document.addEventListener('click', (e) => {
+                    if (isSegmentMenuLocked) return;
+                    if (!e.target.closest('.floating-panel') && !e.target.closest('.dock-btn') && !e.target.closest('#adjust-step-panel') && !e.target.closest('#global-back-btn') && !e.target.closest('.modal-card') && !e.target.closest('#reset-modal-overlay') && !e.target.closest('#custom-modal-overlay') && !e.target.closest('#img-proc-overlay') && !e.target.closest('#glass-menu') && !e.target.closest('#menu-toggle-btn') && !e.target.closest('#lang-dropdown') && !e.target.closest('#lang-toggle-btn') && !e.target.closest('#desktop-controls') && !e.target.closest('#mode-toggle-btn')) {
+                        closeAllMenus();
+                        if (isDefiningZones) exitSegmentationMode();
+                    }
+                });
+
+                function enterBrushEditMode() {
+                    segmentMenu.classList.add('temp-hidden');
+                    uiDockContainer.classList.remove('visible-dock');
+                    uiDockContainer.classList.add('dock-hidden-down');
+                    editModeDock.classList.remove('dock-hidden-down');
+                    editModeDock.classList.add('visible-dock');
+                    
+                    brushControls.classList.add('hidden'); 
+                    clearAreaBtn.classList.add('hidden'); 
+                    brushSizeControls.classList.add('hidden');
+                    
+                    menuToggleBtn.classList.add('hidden');
+                    updateDesktopControlsVisibility();
+                }
+
+                function exitBrushEditMode() {
+                    segmentMenu.classList.remove('temp-hidden');
+                    editModeDock.classList.remove('visible-dock');
+                    editModeDock.classList.add('dock-hidden-down');
+                    uiDockContainer.classList.remove('dock-hidden-down');
+                    uiDockContainer.classList.add('visible-dock');
+                    
+                    isSegmentMenuLocked = false; 
+                    canvas.style.cursor = 'default';
+                    brushControls.classList.remove('hidden'); 
+                    clearAreaBtn.classList.remove('hidden'); 
+                    brushSizeControls.classList.remove('hidden'); 
+                    
+                    menuToggleBtn.classList.remove('hidden');
+                    
+                    draw();
+                    updateDesktopControlsVisibility();
+                }
+
+                const startEditing = () => {
+                    userMaskSnapshot = document.createElement('canvas'); userMaskSnapshot.width = userMaskCanvas.width; userMaskSnapshot.height = userMaskCanvas.height;
+                    userMaskSnapshot.getContext('2d').drawImage(userMaskCanvas, 0, 0);
+                    enterBrushEditMode(); 
+                    isSegmentMenuLocked = true; 
+                    canvas.style.cursor = 'crosshair'; 
+                    draw();
+                };
+
+                addAreaBtn.addEventListener('click', () => { brushMode = 'add'; addAreaBtn.classList.add('active'); removeAreaBtn.classList.remove('active'); startEditing(); });
+                removeAreaBtn.addEventListener('click', () => { brushMode = 'remove'; removeAreaBtn.classList.add('active'); addAreaBtn.classList.remove('active'); startEditing(); });
+                
+                brushSizeSlider.addEventListener('input', (e) => {
+                    brushSize = parseInt(e.target.value, 10);
+                    brushIndicator.style.width = brushSize + 'px'; brushIndicator.style.height = brushSize + 'px';
+                    draw(); 
+                });
+                clearAreaBtn.addEventListener('click', () => {
+                    userMaskCtx.globalCompositeOperation = 'source-over'; userMaskCtx.clearRect(0, 0, canvas.width, canvas.height);
+                    userMaskCtx.drawImage(bodyMaskCanvas, 0, 0); areaAdjustSlider.value = 0; draw();
+                });
+                
+                dockConfirmBtn.addEventListener('click', () => {
+                    exitBrushEditMode();
+                });
+                
+                dockCancelBtn.addEventListener('click', () => {
+                    if (userMaskSnapshot) {
+                        userMaskCtx.globalCompositeOperation = 'source-over'; userMaskCtx.clearRect(0, 0, userMaskCanvas.width, userMaskCanvas.height);
+                        userMaskCtx.drawImage(userMaskSnapshot, 0, 0);
+                    }
+                    exitBrushEditMode();
+                });
+
+                const getCanvasPos = (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    return { x: Math.round((clientX - rect.left) * (canvas.width / rect.width)), y: Math.round((clientY - rect.top) * (canvas.height / rect.height)) };
+                };
+                
+                const onStart = (e) => {
+                    e.preventDefault(); 
+                    
+                    if (e.touches && e.touches.length === 2) {
+                        isGesture = true;
+                        const p1 = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                        const p2 = { x: e.touches[1].clientX, y: e.touches[1].clientY };
+                        
+                        initialPinchDist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+                        initialPinchAngle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                        startScale = tattooProps.scale;
+                        startRotation = tattooProps.rotation;
+                        return;
+                    }
+
+                    const pos = getCanvasPos(e);
+                    if (isDefiningZones) { 
+                        if (isSegmentMenuLocked) {
+                            brushCursorPos = pos;
+                            isBrushing = true;
+                            lastBrushPos = pos;
+                            applyBrush(pos, pos); 
+                            draw(); 
+                        }
+                    } 
+                    else if (tattooImage.src) { 
+                        transformMode = 'move';
+                        transformStart = { 
+                            drag: { 
+                                x: pos.x - (tattooProps.relX * canvas.width), 
+                                y: pos.y - (tattooProps.relY * canvas.height) 
+                            } 
+                        };
+                        canvas.classList.add('grabbing');
+                    }
+                };
+                const onMove = (e) => {
+                    e.preventDefault();
+                    
+                    if (isGesture && e.touches && e.touches.length === 2) {
+                        const p1 = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                        const p2 = { x: e.touches[1].clientX, y: e.touches[1].clientY };
+                        
+                        const currentDist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+                        const currentAngle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                        
+                        if (initialPinchDist > 0) {
+                            const scaleFactor = currentDist / initialPinchDist;
+                            tattooProps.scale = startScale * scaleFactor;
+                            // Sync slider if user is using touch controls on a PC/Laptop screen
+                            if (!isMobile) zoomSlider.value = tattooProps.scale;
+                        }
+                        
+                        const angleDiff = currentAngle - initialPinchAngle;
+                        tattooProps.rotation = startRotation + angleDiff;
+                        
+                        draw();
+                        return;
+                    }
+
+                    const pos = getCanvasPos(e);
+                    if (isDefiningZones) { 
+                        if (isSegmentMenuLocked) {
+                            brushCursorPos = pos; 
+                            if (isBrushing) { applyBrush(lastBrushPos, pos); lastBrushPos = pos; } 
+                            draw(); 
+                        }
+                    } 
+                    else if (transformMode) {
+                        if (transformMode === 'move') {
+                            const nax = pos.x - transformStart.drag.x; const nay = pos.y - transformStart.drag.y;
+                            tattooProps.relX = nax / canvas.width; tattooProps.relY = nay / canvas.height;
+                        } 
+                        draw();
+                    }
+                };
+                const onEnd = (e) => {
+                    if (isBrushing) isBrushing = false; 
+                    if (transformMode === 'move') canvas.classList.remove('grabbing'); 
+                    transformMode = null;
+                    if (e.touches && e.touches.length < 2) {
+                        isGesture = false;
+                    }
+                };
+                canvas.addEventListener('mousedown', onStart); canvas.addEventListener('mousemove', onMove); canvas.addEventListener('mouseup', onEnd);
+                canvas.addEventListener('mouseleave', (e) => { if (isBrushing) isBrushing = false; brushCursorPos = null; if (isDefiningZones) draw(); });
+                canvas.addEventListener('touchstart', onStart, { passive: false }); canvas.addEventListener('touchmove', onMove, { passive: false }); canvas.addEventListener('touchend', onEnd);
+            }
+
+            function getTattooAbsolutePos() { return { x: imageRenderProps.x + tattooProps.relX * imageRenderProps.width, y: imageRenderProps.y + tattooProps.relY * imageRenderProps.height }; }
+            function calculateTattooDimensions() { if (!tattooImage.src || tattooImage.naturalWidth === 0) return { width: 0, height: 0 }; return { width: tattooImage.naturalWidth * tattooProps.scale, height: tattooImage.naturalHeight * tattooProps.scale }; }
+            function getFinalMask() { return userMaskCanvas; }
+            
+            function exportImage() {
+                if (!photoImage.src || !segmentationResult) return;
+                isExporting = true;
+                
+                // MODIFICA MINIMA: Prima dell'export, forziamo un fotogramma sincrono in qualità purissima (ignora le latenze del browser)
+                executeDraw(); 
+                
+                const exportCanvas = document.createElement('canvas'); 
+                exportCanvas.width = canvas.width; exportCanvas.height = canvas.height;
+                const exportCtx = exportCanvas.getContext('2d'); 
+                
+                // Garantiamo che il canvas di salvataggio attivi le modalità in alta risoluzione
+                exportCtx.imageSmoothingEnabled = true;
+                exportCtx.imageSmoothingQuality = 'high';
+                
+                exportCtx.drawImage(canvas, 0, 0);
+                const link = document.createElement('a'); link.download = 'tattoo-virtuale.png'; link.href = exportCanvas.toDataURL('image/png'); link.click();
+                
+                isExporting = false;
+            }
+            
+            downloadBtn.addEventListener('click', exportImage);
+            window.addEventListener('load', initializeModel);
+            setupInteractionEvents();
+            window.addEventListener('resize', () => { 
+                if (photoImage.src) adjustContainerHeight(); 
+                updateDesktopControlsVisibility(); // Controllo resize
+            });
+        });
+    </script>
+</body>
+</html>
