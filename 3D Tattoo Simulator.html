@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- Aggiunto viewport-fit=cover per gestire notch e isole dinamiche -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>3D Glass UI Viewer (Haze Effect)</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,7 +20,7 @@
         .loader { border: 3px solid rgba(0,0,0,0.1); border-top: 3px solid var(--accent-color); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
-        #joystick-zone, #view-toggles, #joy-label, #layer-panel, #menu-toggle, #reset-button, #tutorial-toggle-button, #screenshot-button, #record-button, #lang-dropdown-trigger, #mode-toggle-btn { 
+        #joystick-zone, #view-toggles, #joy-label, #layer-panel, #menu-toggle, #reset-button, #tutorial-toggle-button, #screenshot-button, #record-button, #lang-dropdown-trigger, #mode-toggle-btn, #model-menu-btn { 
             transition: opacity 0.3s ease-in-out, transform 0.3s ease, filter 0.3s ease; 
         }
         
@@ -82,35 +81,25 @@
         .ios-action-btn.ghost { background: transparent; color: #6b7280; width: auto; padding: 10px; box-shadow: none; }
         .ios-action-btn.ghost:hover { color: #1f2937; }
 
-        /* =========================================================================
-           FLUIDITY PATCH: GESTIONE DINAMICA RATIO ESTREMI E SAFE AREAS
-           Modifica il comportamento senza rompere la struttura JS/Tailwind
-           ========================================================================= */
         body {
-            /* Usa DVH invece di VH per evitare problemi con le barre dei browser mobile */
             height: 100dvh !important;
             width: 100vw !important;
-            /* Protezione dinamica per Notch e Isole Dinamiche */
             padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
             box-sizing: border-box;
         }
 
-        /* Menu di controllo: si stringe dinamicamente su schermi piccoli */
         #glass-menu {
             width: clamp(240px, 90vw, 288px) !important;
             max-height: clamp(200px, 70dvh, 600px) !important;
-            /* Si alza in base all'altezza dello schermo, non a pixel fissi */
             bottom: clamp(70px, 15dvh, 96px) !important;
             right: clamp(10px, 4vw, 24px) !important;
             display: flex;
             flex-direction: column;
         }
 
-        /* Pannello texture interno: non esce dallo schermo su ratio corti */
         #preset-area-wrapper { flex-shrink: 1; min-height: 0; display: flex; flex-direction: column; }
         #preset-palette-container { max-height: clamp(80px, 25dvh, 200px); flex-shrink: 1; min-height: 0; }
 
-        /* Pulsanti fluttuanti in basso: si adattano ai bordi arrotondati e al bottom safe area */
         .bottom-6.left-6 {
             bottom: clamp(12px, 3dvh, 24px) !important;
             left: clamp(12px, 3vw, 24px) !important;
@@ -120,7 +109,6 @@
             right: clamp(12px, 3vw, 24px) !important;
         }
 
-        /* Controlli in alto (Safe area garantita) */
         #mode-toggle-btn {
             top: max(16px, env(safe-area-inset-top)) !important;
             left: max(16px, env(safe-area-inset-left)) !important;
@@ -131,21 +119,17 @@
             right: max(4px, env(safe-area-inset-right)) !important;
         }
 
-        /* Popup overlay fluidi */
         #replace-add-popup > div, #tutorial-overlay > div {
             width: clamp(280px, 92vw, 384px) !important;
             max-height: 90dvh;
             overflow-y: auto;
         }
 
-        /* Fix dimensione testo in Image Processing per schermi ultra-stretti */
         .option-card span.text-\\[11px\\] { font-size: clamp(9px, 2.5vw, 11px) !important; }
         
-        /* Liste a discesa dinamiche */
         #lang-dropdown-list, #layer-dropdown-list { max-height: clamp(150px, 40dvh, 300px); overflow-y: auto; }
     </style>
 </head>
-<!-- h-[100dvh] previene overflow invisibili, il resto gestito dal CSS fluido sopra -->
 <body class="antialiased w-full h-[100dvh] overflow-hidden bg-gray-200 flex flex-col relative">
 
     <button id="mode-toggle-btn" class="fixed z-[1001] w-10 h-10 bg-white/80 backdrop-blur-md rounded-full border border-gray-200 shadow-sm flex items-center justify-center transition-transform active:scale-95 cursor-pointer pointer-events-auto">
@@ -195,27 +179,6 @@
 
         <canvas id="canvas3D" class="w-full h-full block outline-none"></canvas>
         
-        <div id="initial-upload-overlay" class="absolute inset-0 z-50 bg-gray-100/80 backdrop-blur-xl flex flex-col items-center justify-center gap-6 p-6 transition-opacity duration-500">
-            <div class="text-center space-y-2">
-                <h2 class="text-2xl font-bold text-gray-900 tracking-tight" data-i18n="title">Studio 3D</h2>
-                <p class="text-sm text-gray-500" data-i18n="subtitle">Upload your models to start</p>
-            </div>
-            <div class="w-full max-w-sm flex flex-col gap-3">
-                <label id="label-glb1" for="glb-in1" class="group flex items-center gap-4 p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-black transition-all cursor-pointer">
-                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-900 group-hover:bg-black group-hover:text-white transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
-                    </div>
-                    <div class="overflow-hidden text-left"><span class="block font-semibold text-gray-900 text-sm" data-i18n="src_model">Source Model (UV1)</span><p id="fname1" class="text-xs text-gray-400 truncate mt-0.5" data-i18n="sel_glb">Select .glb</p></div>
-                </label>
-                <label id="label-glb2" for="glb-in2" class="group flex items-center gap-4 p-4 rounded-2xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-black transition-all cursor-pointer">
-                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-900 group-hover:bg-black group-hover:text-white transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" /></svg>
-                    </div>
-                    <div class="overflow-hidden text-left"><span class="block font-semibold text-gray-900 text-sm" data-i18n="tgt_model">Target Model (UV2)</span><p id="fname2" class="text-xs text-gray-400 truncate mt-0.5" data-i18n="sel_glb">Select .glb</p></div>
-                </label>
-            </div>
-        </div>
-
         <div id="img-proc-overlay" class="absolute inset-0 z-[60] flex flex-col inactive">
             <div class="flex-1 flex flex-col p-4 gap-5 h-full w-full max-w-2xl mx-auto justify-center">
                 <div class="text-center py-2 relative z-10">
@@ -345,6 +308,14 @@
                 <button id="tutorial-toggle-button" class="glass-ui w-14 h-14 rounded-full flex items-center justify-center hover:bg-white hover:scale-105 transition-all hidden shadow-md">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </button>
+                
+                <!-- BOTTONE SWITCH RAPIDO MODELLO 3D -->
+                <button id="model-menu-btn" class="glass-ui w-14 h-14 rounded-full flex items-center justify-center hover:bg-white hover:scale-105 transition-all hidden shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                </button>
+                
                 <button id="reset-button" class="glass-ui w-14 h-14 rounded-full flex items-center justify-center hover:bg-white hover:scale-105 transition-all hidden shadow-md">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
                 </button>
@@ -410,8 +381,6 @@
         </div>
     </div>
 
-    <input type="file" id="glb-in1" class="hidden" accept=".glb">
-    <input type="file" id="glb-in2" class="hidden" accept=".glb">
     <input type="file" id="img-in" class="hidden" accept="image/png, image/jpeg, image/jpg">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -470,11 +439,14 @@
     </script>
     
     <script>
+        const GOOGLE_DRIVE_API_KEY = 'AIzaSyBJFeOfENIvfzunniWaWQ6sj9M-oH4CJAo'; 
+        const PRESETS_DRIVE_FOLDER_ID = '1qDyoMFr2pT-iR_e6FTG3TnnQdPy6J0jZ';
+        const MODELS_DRIVE_FOLDER_ID = '1SGFp3vB46ELm-EVWwGVFPvj95IIdYFVP';
+        
         const i18n = {
             'EN': {
                 'front': 'FRONT', 'back': 'BACK',
-                'title': 'Studio 3D', 'subtitle': 'Upload your models to start',
-                'src_model': 'Source Model (UV1)', 'tgt_model': 'Target Model (UV2)', 'sel_glb': 'Select .glb',
+                'title': 'Studio 3D',
                 'choose_style': 'Choose Style', 'style_desc': 'Select the optimized version for your tattoo',
                 'opt_orig': 'Original Photo', 'opt_orig_desc': 'Unmodified',
                 'opt_mid': 'Color Tattoo', 'opt_mid_desc': 'No Background',
@@ -498,8 +470,7 @@
             },
             'IT': {
                 'front': 'FRONTE', 'back': 'RETRO',
-                'title': 'Studio 3D', 'subtitle': 'Carica i tuoi modelli per iniziare',
-                'src_model': 'Modello Base (UV1)', 'tgt_model': 'Modello Target (UV2)', 'sel_glb': 'Seleziona .glb',
+                'title': 'Studio 3D',
                 'choose_style': 'Scegli Stile', 'style_desc': 'Seleziona la versione ottimizzata per il tuo tatuaggio',
                 'opt_orig': 'Foto Originale', 'opt_orig_desc': 'Originale',
                 'opt_mid': 'Tatuaggio a Colori', 'opt_mid_desc': 'Senza Sfondo',
@@ -526,7 +497,6 @@
         let currentLang = 'EN';
         const langFlags = { 'EN': '🇬🇧', 'IT': '🇮🇹' };
         
-        // Mode State
         let isPresetMode = true;
         window.currentActionCallback = null;
 
@@ -567,8 +537,6 @@
             applyTranslations();
         }
 
-        const GOOGLE_DRIVE_API_KEY = 'AIzaSyBJFeOfENIvfzunniWaWQ6sj9M-oH4CJAo'; 
-        const DRIVE_FOLDER_ID = '1qDyoMFr2pT-iR_e6FTG3TnnQdPy6J0jZ';
         const DEFAULT_PRESETS = {
             'Fallback': [
                 {img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
@@ -599,15 +567,14 @@
         const isPC = !isTouchDevice;
 
         const dom={
-            glbIn1:document.getElementById('glb-in1'),glbIn2:document.getElementById('glb-in2'),imgIn:document.getElementById('img-in'),
-            fName1:document.getElementById('fname1'),fName2:document.getElementById('fname2'),
+            imgIn:document.getElementById('img-in'),
             c3dCont:document.getElementById('canvas-container'),c3dCanv:document.getElementById('canvas3D'),
             statusInd:document.getElementById('status-indicator'),statusTxt:document.getElementById('status-text'),statusLdr:document.getElementById('status-loader'),
             menuToggle:document.getElementById('menu-toggle'),menu:document.getElementById('glass-menu'),
             tutOverlay:document.getElementById('tutorial-overlay'),tutTitle:document.getElementById('tut-title'),tutDesc:document.getElementById('tut-desc'),tutIconContainer:document.getElementById('tut-icon-container'),tutDots:document.getElementById('tut-dots'),tutPrevBtn:document.getElementById('tut-prev-btn'),tutNextBtn:document.getElementById('tut-next-btn'),tutSkipBtn:document.getElementById('tut-skip-btn'),
             resetBtn:document.getElementById('reset-button'),tutBtn:document.getElementById('tutorial-toggle-button'),screenshotBtn:document.getElementById('screenshot-button'),recordBtn:document.getElementById('record-button'),
             presetCont:document.getElementById('preset-palette-container'),catSelect:document.getElementById('category-select'),
-            initialUploadOverlay:document.getElementById('initial-upload-overlay'),
+            btnModelMenu:document.getElementById('model-menu-btn'),
             viewToggles:document.getElementById('view-toggles'),btnFront:document.getElementById('btn-front'),btnBack:document.getElementById('btn-back'),
             joystick:document.getElementById('joystick-zone'), joyLabel:document.getElementById('joy-label'),
             layerPanel: document.getElementById('layer-panel'),
@@ -648,11 +615,16 @@
         
         let meshes1=[],meshes2=[],selMesh1,selMesh2,modelsData,viewer,statusTimeout,dragMode;
         let isFrontView = true;
+        let isFirstLoad = true;
         let pendingNewLayerIndex = null;
         let pendingRawImageSrc = null;
-        const filesReady={m1:false,m2:false,img:false},raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
+        const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
         
         let currentSelection = null; 
+
+        // Nuove variabili globali per la gestione dei modelli 3D da Drive
+        let modelFolders = [];
+        let currentModelIndex = 0;
 
         const MAX_LAYERS = 10;
         let activeLayerIndex = 0;
@@ -713,14 +685,14 @@
                 else el.classList.remove('ui-blurred');
             };
             
-            const elementsToBlur = [dom.joystick ? dom.joystick.parentElement : null, dom.recordBtn, dom.screenshotBtn, dom.tutBtn, dom.resetBtn, dom.zoomSliderContainer, dom.rotControls];
+            const elementsToBlur = [dom.joystick ? dom.joystick.parentElement : null, dom.recordBtn, dom.screenshotBtn, dom.tutBtn, dom.resetBtn, dom.btnModelMenu, dom.zoomSliderContainer, dom.rotControls];
             elementsToBlur.forEach(el => setBlur(el, anyOpen));
 
             setBlur(dom.viewToggles, anyOpen);
             setBlur(dom.menuToggle, isDropdownOpen || isLangDropdownOpen);
-            setBlur(dom.layerPanel, isMenuOpen || isLangDropdownOpen);
-            setBlur(dom.langTrigger, isMenuOpen || isDropdownOpen);
-
+            setBlur(dom.layerPanel, isLangDropdownOpen);
+            setBlur(dom.langTrigger, isDropdownOpen);
+            
             dom.c3dCont.classList.toggle('menu-overlay-active', anyOpen);
             
             const placedCount = layers.filter(l => l.placed).length;
@@ -902,16 +874,113 @@
             viewer?.renderer.render(viewer.scene,viewer.camera);
         };
         
-        const handleFile=(e,n)=>{const f=e.target.files[0];if(!f)return e.target.value=null;dom[`fName${n}`].textContent=f.name;updateStatus(`Loading model ${n}...`,true,false);const r=new FileReader();r.onload=e=>{new THREE.GLTFLoader().parse(e.target.result,'',(gltf)=>{const m=[];gltf.scene.traverse(o=>{if(o.isMesh)m.push(o);});if(m.length===0)return updateStatus(`Error: No mesh in model ${n}.`,false);if(n===1){meshes1=m;filesReady.m1=true;}else{meshes2=m;filesReady.m2=true;}updateStatus(`Model ${n} loaded.`,false);if(filesReady.m1&&filesReady.m2){selMesh1=meshes1[0];selMesh2=meshes2[0];processModels();}});};r.readAsArrayBuffer(f);e.target.value=null;};
-        const processModels=()=>{const c=(m,n)=>{if(!m.geometry.attributes.position||!m.geometry.attributes.uv){updateStatus(`Error: Missing attributes in mesh ${n}.`,false);return false;}return true;};if(!c(selMesh1,1)||!c(selMesh2,2))return;updateStatus('Processing models...',true,false);setTimeout(()=>{try{modelsData=createCombinedData(selMesh1,selMesh2);setupCombinedView(selMesh1,selMesh2);updateStatus('Process complete. Upload an image.',false);dom.initialUploadOverlay.classList.add('opacity-0');setTimeout(()=>{dom.initialUploadOverlay.classList.add('hidden');},500);
-        dom.menuToggle.classList.remove('hidden');
-        dom.menu.classList.add('visible');
-        dom.layerPanel.classList.remove('hidden'); 
-        updateMenuHighlight();
-        dom.viewToggles.classList.remove('hidden');
-        dom.joystick.classList.remove('hidden');
-        dom.joyLabel.classList.remove('hidden');
-        }catch(e){updateStatus(`Error: ${e.message}`,false);}},50);};
+        // --- FUNZIONI CARICAMENTO MODELLI DA GOOGLE DRIVE ---
+        const fetchModelsFolders = async () => {
+            updateStatus('Fetching models...', true, false);
+            try {
+                const query = `'${MODELS_DRIVE_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'`;
+                const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&key=${GOOGLE_DRIVE_API_KEY}&fields=files(id,name)`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error("API Request Failed");
+                const data = await res.json();
+                
+                if(data.files && data.files.length > 0) {
+                    modelFolders = data.files;
+                    currentModelIndex = 0;
+                    
+                    // Carica automaticamente il primo modello trovato
+                    loadModelFromFolder(modelFolders[currentModelIndex].id);
+                } else {
+                    updateStatus('No models found', false);
+                }
+            } catch (e) {
+                updateStatus('Error fetching models list', false);
+            }
+        };
+
+        const loadModelFromFolder = async (folderId) => {
+            updateStatus('Downloading Model...', true, false);
+            try {
+                const querySafe = `'${folderId}' in parents`;
+                const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(querySafe)}&key=${GOOGLE_DRIVE_API_KEY}&fields=files(id,name)`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                const frontFile = data.files.find(f => f.name.toUpperCase() === 'FRONT.GLB');
+                const backFile = data.files.find(f => f.name.toUpperCase() === 'BACK.GLB');
+
+                if (!frontFile || !backFile) {
+                    updateStatus("Error: FRONT.glb or BACK.glb missing", false);
+                    return;
+                }
+
+                const fetchGLB = async (fileId) => {
+                    const dlUrl = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${GOOGLE_DRIVE_API_KEY}`;
+                    try {
+                        const r = await fetch(dlUrl);
+                        if (!r.ok) throw new Error("Failed to download file directly");
+                        return await r.arrayBuffer();
+                    } catch (e) {
+                        console.warn("Fetch diretto fallito (probabile blocco CORS per redirect in iframe). Uso proxy di fallback...", e);
+                        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(dlUrl)}`;
+                        const rProxy = await fetch(proxyUrl);
+                        if (!rProxy.ok) throw new Error("Failed to download file via proxy");
+                        return await rProxy.arrayBuffer();
+                    }
+                };
+
+                updateStatus('Downloading FRONT & BACK...', true, false);
+                const [frontBuffer, backBuffer] = await Promise.all([fetchGLB(frontFile.id), fetchGLB(backFile.id)]);
+
+                const parseGLB = (buffer) => new Promise((resolve, reject) => {
+                    new THREE.GLTFLoader().parse(buffer, '', (gltf) => {
+                        const m = [];
+                        gltf.scene.traverse(o => { if(o.isMesh) m.push(o); });
+                        if(m.length === 0) reject(new Error("No mesh found in GLB"));
+                        resolve(m);
+                    }, reject);
+                });
+
+                updateStatus('Parsing Models...', true, false);
+                meshes1 = await parseGLB(frontBuffer);
+                meshes2 = await parseGLB(backBuffer);
+                selMesh1 = meshes1[0];
+                selMesh2 = meshes2[0];
+
+                processModels(); 
+            } catch (e) {
+                updateStatus('Error loading 3D model', false);
+                console.error(e);
+            }
+        };
+
+        const processModels=()=>{
+            const c=(m,n)=>{if(!m.geometry.attributes.position||!m.geometry.attributes.uv){updateStatus(`Error: Missing attributes in mesh ${n}.`,false);return false;}return true;};
+            if(!c(selMesh1,1)||!c(selMesh2,2))return;
+            updateStatus('Processing 3D geometry...',true,false);
+            
+            setTimeout(()=>{
+                try{
+                    modelsData=createCombinedData(selMesh1,selMesh2);
+                    setupCombinedView(selMesh1,selMesh2);
+                    updateStatus('Model loaded successfully.',false);
+                    
+                    dom.menuToggle.classList.remove('hidden');
+                    if (isFirstLoad) {
+                        dom.menu.classList.add('visible');
+                        isFirstLoad = false;
+                    }
+                    updateMenuHighlight();
+                    dom.viewToggles.classList.remove('hidden');
+                    dom.joystick.classList.remove('hidden');
+                    dom.joyLabel.classList.remove('hidden');
+                    dom.btnModelMenu.classList.remove('hidden'); 
+                }catch(e){
+                    updateStatus(`Error: ${e.message}`,false);
+                }
+            },50);
+        };
+        
         const createCombinedData=(m1,m2)=>{const g1=m1.geometry,g2=m2.geometry,p1=g1.attributes.position,p2=g2.attributes.position,uv1=g1.attributes.uv,uv2=g2.attributes.uv;if(!p1||!p2||!uv1||!uv2)throw new Error('Missing attributes.');const getKey=(p,i)=>`${p.getX(i).toFixed(5)},${p.getY(i).toFixed(5)},${p.getZ(i).toFixed(5)}`;const map=new Map();for(let i=0;i<p1.count;i++){const k=getKey(p1,i);if(!map.has(k))map.set(k,{u1:uv1.getX(i),v1:uv1.getY(i),u2:null,v2:null});}for(let i=0;i<p2.count;i++){const k=getKey(p2,i);const e=map.get(k);if(e){e.u2=uv2.getX(i);e.v2=uv2.getY(i);}}return{vertexMap:map};};
         
         const setUIMode=(isTexMode)=>{
@@ -1132,7 +1201,6 @@
             i.src = finalSrc;
         };
 
-        // Gestione Intelligente Aggiunta/Sostituzione Livello
         const handleAddOrReplace = (actionCallback) => {
             const hasPlaced = layers.some(l => l.placed);
             if (!hasPlaced) {
@@ -1536,6 +1604,9 @@
             renderLayerDropdown();
             applyTranslations(); 
             applyAppMode();
+            
+            // Scarica cartelle modelli 3D e Preset Drive all'avvio
+            fetchModelsFolders();
 
             const populatePresets = cat => {
                 dom.presetCont.innerHTML = '';
@@ -1592,7 +1663,7 @@
                     return;
                 }
                 try {
-                    const folderQuery = `'${DRIVE_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'`;
+                    const folderQuery = `'${PRESETS_DRIVE_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'`;
                     const folderUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(folderQuery)}&key=${GOOGLE_DRIVE_API_KEY}&fields=files(id,name)`;
                     const folderRes = await fetch(folderUrl);
                     
@@ -1628,6 +1699,18 @@
 
             loadDynamicPresets();
             
+            // Bottone Switch Rapido Modelli 3D
+            dom.btnModelMenu.addEventListener('click', () => {
+                if (modelFolders.length <= 1) return; // Niente a cui fare lo switch
+                
+                // Passa al prossimo modello nella lista
+                currentModelIndex = (currentModelIndex + 1) % modelFolders.length;
+                const nextModelFolder = modelFolders[currentModelIndex];
+                
+                updateStatus(`Switching to: ${nextModelFolder.name}...`, true, false);
+                loadModelFromFolder(nextModelFolder.id);
+            });
+            
             dom.modeToggleBtn.addEventListener('click', () => {
                 isPresetMode = !isPresetMode;
                 applyAppMode();
@@ -1642,11 +1725,13 @@
 
             dom.layerDropdownTrigger.addEventListener('click', (e) => {
                 e.stopPropagation();
+                dom.langList.classList.remove('open');
                 toggleLayerDropdown();
             });
 
             dom.langTrigger.addEventListener('click', (e) => {
                 e.stopPropagation();
+                closeLayerDropdown();
                 const isOpen = dom.langList.classList.contains('open');
                 dom.langList.classList.toggle('open', !isOpen);
                 updateInterfaceVisibility();
@@ -1661,9 +1746,10 @@
             document.addEventListener('click', e => {
                 const hasTex = layers.some(l => l.placed);
                 if(!dom.menu.contains(e.target) && !dom.menuToggle.contains(e.target) && dom.menu.classList.contains('visible')) {
-                    if(!hasTex) return;
-                    dom.menu.classList.remove('visible');
-                    updateMenuHighlight();
+                    if(hasTex) {
+                        dom.menu.classList.remove('visible');
+                        updateMenuHighlight();
+                    }
                 }
                 if(!dom.layerDropdownList.contains(e.target) && !dom.layerDropdownTrigger.contains(e.target)) {
                     closeLayerDropdown();
@@ -1929,8 +2015,6 @@
             updateMenuHighlight();animate();resizeViewer();
         });
         window.addEventListener('resize',resizeViewer);
-        dom.glbIn1.addEventListener('change',e=>handleFile(e,1));
-        dom.glbIn2.addEventListener('change',e=>handleFile(e,2));
         dom.imgIn.addEventListener('change',handleImgLoad);
     </script>
 </body>
