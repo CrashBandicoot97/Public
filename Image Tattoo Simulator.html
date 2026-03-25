@@ -449,6 +449,11 @@
             #adjust-step-panel::-webkit-scrollbar { display: none; }
         }
 
+        #a2hs-popup > div {
+            width: clamp(280px, 92vw, 384px) !important;
+            max-height: 90dvh;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -561,6 +566,18 @@
                     Copia e apri il link mostrato nella console del browser per abilitarla. Fino ad allora l'app userà i preset di emergenza.
                 </p>
                 <button id="api-error-close-btn" class="ios-action-btn w-full">Ho capito</button>
+            </div>
+        </div>
+
+        <!-- Popup Add to Home Screen -->
+        <div id="a2hs-popup" class="hidden fixed inset-0 z-[1002] flex items-center justify-center bg-gray-900/50 backdrop-blur-sm transition-opacity">
+            <div class="bg-white/90 backdrop-blur-xl border border-white/60 p-6 rounded-3xl shadow-2xl w-11/12 max-w-sm text-center flex flex-col gap-4 scale-100 transition-transform">
+                <div class="w-14 h-14 bg-white border border-gray-200 rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-1">
+                    <span class="text-3xl leading-none">📱</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900" data-i18n="a2hs_title">Aggiungi alla schermata Home</h3>
+                <p class="text-sm text-gray-600 px-2 leading-relaxed" data-i18n="a2hs_desc">Tocca l'icona Condividi e seleziona "Aggiungi alla schermata Home". In questo modo potrai utilizzare il simulatore come una vera e propria App per telefono</p>
+                <button id="btn-a2hs-close" class="mt-2 w-full py-3.5 rounded-xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-300 transition-all active:scale-95 text-sm shadow-sm" data-i18n="a2hs_close">Non ora</button>
             </div>
         </div>
 
@@ -815,6 +832,9 @@
                 lblRotate: "ROTATE",
                 modePreset: "Mode: Presets 🔄",
                 modeOwn: "Mode: Own Tattoo 🔄",
+                a2hs_title: "Add to Home Screen",
+                a2hs_desc: "Install this app on your device for the best experience! Tap the Share icon and select \"Add to Home Screen\".",
+                a2hs_close: "Not now",
                 tutSteps: [
                     { title: "1. Upload Body", desc: "Start by uploading a photo of the body part you want to tattoo using the 'Body' button." },
                     { title: "2. Auto Silhouette", desc: "The AI automatically detects the body's edges. Use the 'Silhouette Fit' slider to expand or contract the body mask for a perfect fit." },
@@ -882,6 +902,9 @@
                 lblRotate: "RUOTA",
                 modePreset: "Modalità: Preset 🔄",
                 modeOwn: "Modalità: Tuo Tattoo 🔄",
+                a2hs_title: "Aggiungi alla schermata Home",
+                a2hs_desc: "Tocca l'icona Condividi e seleziona \"Aggiungi alla schermata Home\". In questo modo potrai utilizzare il simulatore come una vera e propria App per telefono",
+                a2hs_close: "Non ora",
                 tutSteps: [
                     { title: "1. Carica Corpo", desc: "Inizia caricando una foto della parte del corpo che vuoi tatuare usando il pulsante 'Corpo'." },
                     { title: "2. Sagoma Automatica", desc: "L'IA rileva automaticamente i bordi del corpo. Usa lo slider 'Adattamento Sagoma' per espandere o contrarre la maschera del corpo per un adattamento perfetto." },
@@ -969,6 +992,7 @@
 
             // --- LOGICA TOGGLE MODALITA' ---
             let isPresetMode = true;
+            let hasShownA2HSPopup = false; // AGGIUNTO: Sentinella per assicurarsi che il popup venga mostrato solo 1 volta
 
             function applyAppMode() {
                 if (!modeToggleBtn) return;
@@ -1083,6 +1107,9 @@
             const modalOverlay = document.getElementById('custom-modal-overlay');
             const modalCancelBtn = document.getElementById('modal-cancel-btn');
             const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+            
+            const a2hsPopup = document.getElementById('a2hs-popup');
+            const btnA2hsClose = document.getElementById('btn-a2hs-close');
 
             // --- IMG PROCESS OVERLAY ELEMENTS ---
             const imgProcOverlay = document.getElementById('img-proc-overlay');
@@ -1232,6 +1259,11 @@
             document.getElementById('api-error-close-btn').addEventListener('click', () => {
                 document.getElementById('api-error-modal-overlay').classList.add('hidden');
             });
+            
+            // Chiudi il modal A2HS
+            btnA2hsClose.addEventListener('click', () => {
+                a2hsPopup.classList.add('hidden');
+            });
 
             const MAX_PROCESSING_DIMENSION = 1920; 
 
@@ -1257,7 +1289,7 @@
             // ATTENZIONE: Google Drive impedisce di leggere le cartelle via web senza un'API Key per motivi di sicurezza.
             // Inserisci qui la tua API Key di Google Cloud per attivare il Drive Dinamico.
             const GOOGLE_DRIVE_API_KEY = 'AIzaSyBJFeOfENIvfzunniWaWQ6sj9M-oH4CJAo'; 
-            const DRIVE_FOLDER_ID = '1qDyoMFr2pT-iR_e6FTG3TnnQdPy6J0jZ';
+            const DRIVE_FOLDER_ID = '1Go1jiEuLD4s7JU9RONFLorztdueHh1vs';
 
             function initPresetMenu() {
                 categorySelect.innerHTML = '';
@@ -1818,6 +1850,14 @@
                       btnUploadTattoo.classList.remove('pulsing-btn');
                       Array.from(presetPaletteContainer.children).forEach(child => child.querySelector('div').classList.remove('pulsing-btn'));
                       
+                      // AGGIUNTA POPUP A2HS (Aggiungi alla Home): si attiva 1.5 secondi dopo aver caricato il tattoo per la primissima volta
+                      if (!hasShownA2HSPopup) {
+                          hasShownA2HSPopup = true;
+                          setTimeout(() => {
+                              document.getElementById('a2hs-popup').classList.remove('hidden');
+                          }, 1500);
+                      }
+                      
                     if (photoImage.naturalHeight > 0 && tattooImage.naturalHeight > 0) {
                         const targetHeight = photoImage.naturalHeight / 3;
                         tattooProps.scale = targetHeight / tattooImage.naturalHeight;
@@ -2195,7 +2235,7 @@
 
                 document.addEventListener('click', (e) => {
                     if (isSegmentMenuLocked) return;
-                    if (!e.target.closest('.floating-panel') && !e.target.closest('.dock-btn') && !e.target.closest('#adjust-step-panel') && !e.target.closest('#global-back-btn') && !e.target.closest('.modal-card') && !e.target.closest('#reset-modal-overlay') && !e.target.closest('#custom-modal-overlay') && !e.target.closest('#img-proc-overlay') && !e.target.closest('#glass-menu') && !e.target.closest('#menu-toggle-btn') && !e.target.closest('#lang-dropdown') && !e.target.closest('#lang-toggle-btn') && !e.target.closest('#desktop-controls') && !e.target.closest('#mode-toggle-btn')) {
+                    if (!e.target.closest('.floating-panel') && !e.target.closest('.dock-btn') && !e.target.closest('#adjust-step-panel') && !e.target.closest('#global-back-btn') && !e.target.closest('.modal-card') && !e.target.closest('#reset-modal-overlay') && !e.target.closest('#custom-modal-overlay') && !e.target.closest('#img-proc-overlay') && !e.target.closest('#glass-menu') && !e.target.closest('#menu-toggle-btn') && !e.target.closest('#lang-dropdown') && !e.target.closest('#lang-toggle-btn') && !e.target.closest('#desktop-controls') && !e.target.closest('#mode-toggle-btn') && !e.target.closest('#a2hs-popup')) {
                         closeAllMenus();
                         if (isDefiningZones) exitSegmentationMode();
                     }
