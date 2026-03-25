@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Absolute Studio | Servizi per Tatuatori</title>
+    <title>Appsolute Studio | Servizi per Tatuatori</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -172,7 +172,7 @@
     <div id="landing-container">
         <canvas id="landing-canvas"></canvas>
         <div id="landing-content" class="hidden-start">
-            <h1 class="text-5xl md:text-8xl font-black mb-8 tracking-tighter text-center text-black">ABSOLUTE STUDIO&trade;</h1>
+            <h1 class="text-5xl md:text-8xl font-black mb-8 tracking-tighter text-center text-black">APPSOLUTE STUDIO&trade;</h1>
             <button id="enter-btn">Entra nello Studio</button>
         </div>
     </div>
@@ -308,10 +308,10 @@
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
             
-            <h3 class="text-2xl md:text-3xl font-black text-black mb-6 tracking-tighter uppercase">Studio Serpe in Seno</h3>
+            <h3 class="text-2xl md:text-3xl font-black text-black mb-6 tracking-tighter uppercase">LASCIATI ISPIRARE</h3>
             
             <p class="text-gray-600 text-base md:text-lg mb-8 leading-relaxed">
-                Stai per accedere a una <strong class="text-black">sottoscrizione realmente attiva</strong> per lo studio <em>Serpe in Seno</em> con sede a Treviso (Italia) del tatuatore <strong>Lorenzo Bassanello</strong>.
+                Stai per accedere a una <strong class="text-black">sottoscrizione realmente attiva</strong> per lo studio <em>Serpe in Seno</em> con sede a Treviso (Italia) del tatuatore <strong>lorenzoblk.tattoo</strong>.
             </p>
             
             <div class="flex flex-col gap-3">
@@ -339,7 +339,7 @@
             const enterBtn = document.getElementById('enter-btn');
             
             let width, height, particles = [], mouse = { x: -1000, y: -1000 }, isTransitioning = false;
-            let hasInteracted = false; // Traccia se l'utente ha mosso il dito/mouse
+            let lastInteractionTime = 0; // Traccia l'ultima volta che l'utente ha toccato lo schermo
             
             // QUADRUPLICATO: 1400 su mobile, 4000 su desktop
             let PARTICLE_COUNT = window.innerWidth < 768 ? 1400 : 4000;
@@ -421,23 +421,27 @@
                 const globalSwayX = Math.sin(time) * 1.2;
                 const globalSwayY = Math.cos(time * 0.8) * 1.2;
 
-                // MOVIMENTO AUTONOMO: Se l'utente non ha ancora interagito, simuliamo un dito che si muove
-                if (!hasInteracted && !isTransitioning) {
-                    // Curva morbida che spazza l'intero schermo per disperdere l'inchiostro fin da subito
-                    mouse.x = width / 2 + Math.sin(time) * (width * 0.4);
-                    mouse.y = height / 2 + Math.sin(time * 1.3) * (height * 0.4);
+                // MOVIMENTO AUTONOMO: Se l'utente non interagisce da 1.5 secondi, riprende il movimento automatico
+                if (Date.now() - lastInteractionTime > 1500 && !isTransitioning) {
+                    const autoTime = time * 0.5; // Velocità dimezzata rispetto a prima
+                    // Traiettoria "a forma di 8" (Lemniscata) che passa sempre esattamente per il centro
+                    mouse.x = width / 2 + Math.sin(autoTime) * (width * 0.4);
+                    mouse.y = height / 2 + Math.sin(autoTime * 2) * (height * 0.3);
                 }
 
                 ctx.clearRect(0, 0, width, height);
                 let particlesInCenter = 0;
-                let threshold = PARTICLE_COUNT * 0.03;
+                
+                // FIX: Aumentata la soglia dal 3% al 18% in modo che la scritta appaia molto più in fretta
+                let threshold = PARTICLE_COUNT * 0.18;
 
                 particles.forEach(p => {
                     p.update(globalSwayX, globalSwayY); 
                     p.draw();
                     if (!isTransitioning) {
                         let centerDistSq = (p.x - width/2) * (p.x - width/2) + (p.y - height/2) * (p.y - height/2);
-                        if (centerDistSq < 16900) particlesInCenter++; // 130 * 130
+                        // FIX: Ridotto il raggio di controllo centrale (da 130 a 90) per attivarsi prima
+                        if (centerDistSq < 8100) particlesInCenter++; // 90 * 90
                     }
                 });
 
@@ -455,7 +459,7 @@
 
             window.addEventListener('resize', init);
             window.addEventListener('mousemove', e => { 
-                hasInteracted = true;
+                lastInteractionTime = Date.now();
                 mouse.x = e.clientX; 
                 mouse.y = e.clientY; 
             });
@@ -463,14 +467,14 @@
             // Supporto tocco su dispositivi mobili per disperdere le particelle
             window.addEventListener('touchmove', e => { 
                 if(e.touches.length > 0) {
-                    hasInteracted = true;
+                    lastInteractionTime = Date.now();
                     mouse.x = e.touches[0].clientX; 
                     mouse.y = e.touches[0].clientY; 
                 }
             });
             window.addEventListener('touchstart', e => { 
                 if(e.touches.length > 0) {
-                    hasInteracted = true;
+                    lastInteractionTime = Date.now();
                     mouse.x = e.touches[0].clientX; 
                     mouse.y = e.touches[0].clientY; 
                 }
