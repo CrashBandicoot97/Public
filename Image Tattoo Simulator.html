@@ -411,8 +411,26 @@
             box-shadow: 0 8px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 8px; z-index: 150; 
             animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
             transform-origin: bottom center;
-            transition: scale 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            /* MODIFICA: aggiunte le transizioni per la trasparenza dinamica */
+            transition: scale 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, backdrop-filter 0.2s ease;
         }
+
+        /* MODIFICA: Regole per smaterializzare il menu quando si tocca lo slider */
+        #adjust-step-panel.is-sliding {
+            background-color: transparent !important;
+            backdrop-filter: blur(0px) saturate(100%) !important;
+            -webkit-backdrop-filter: blur(0px) saturate(100%) !important;
+            border-color: transparent !important;
+            box-shadow: none !important;
+        }
+        #adjust-step-text-wrap {
+            transition: opacity 0.2s ease-out;
+        }
+        #adjust-step-panel.is-sliding #adjust-step-text-wrap {
+            opacity: 0 !important;
+            pointer-events: none;
+        }
+
         @keyframes slideUp { from { transform: translate(-50%, 100px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 
         /* MODIFICA RESPONSIVITÀ MENU: Rimpicciolimento (scale) automatico invece di scroll per schermi bassi */
@@ -628,7 +646,8 @@
             </div>
 
             <div id="adjust-step-panel" class="hidden">
-                <div class="flex flex-col text-left w-full">
+                <!-- MODIFICA: aggiunto ID adjust-step-text-wrap al contenitore del testo -->
+                <div id="adjust-step-text-wrap" class="flex flex-col text-left w-full">
                     <div class="panel-header !m-0 !text-left" data-i18n="step2Title">Step 2: Silhouette Fit</div>
                     <p class="text-[10px] text-gray-500 leading-tight font-medium mt-0.5" data-i18n="step2Desc">
                         Fine-tune the edge of your body silhouette for a realistic fit.
