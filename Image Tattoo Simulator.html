@@ -56,7 +56,7 @@
             left: 50%;
             transform: translateX(-50%) translateY(20px) scale(0.95); 
             opacity: 0; 
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease-out; 
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease-out, scale 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
             pointer-events: none; 
             width: 320px; /* Allargato a 320px per ospitare 3 colonne */
             padding: 4px; 
@@ -263,8 +263,9 @@
             background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); 
             -webkit-backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-border); 
             border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
-            opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+            opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1), scale 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
             display: flex; flex-direction: column; gap: 15px; z-index: 99; 
+            transform-origin: bottom center;
         }
         .floating-panel.visible { opacity: 1; transform: translateX(-50%) scale(1); pointer-events: auto; }
         .floating-panel.temp-hidden { opacity: 0 !important; pointer-events: none !important; transform: translateX(-50%) scale(0.9) !important; }
@@ -381,7 +382,7 @@
             border: 1px solid #f3f4f6;
         }
 
-        .tutorial-card { background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-border); padding: 30px; border-radius: 28px; max-width: 320px; width: 90%; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .tutorial-card { background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-border); padding: 30px; border-radius: 28px; max-width: 320px; width: 90%; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center; gap: 15px; transform-origin: bottom center; transition: scale 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         .tutorial-dock-btn-clone { width: 64px; height: 64px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white; 
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); animation: pulse-ring 2s infinite; }
         
@@ -404,49 +405,31 @@
         .flex-row-controls { display: flex; flex-direction: row !important; gap: 10px; }
         
         #adjust-step-panel { 
-            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); width: 320px; 
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 380px; 
             background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); 
-            border: 1px solid var(--glass-border); border-radius: 24px; padding: 25px; 
-            box-shadow: 0 25px 60px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 20px; z-index: 150; 
+            border: 1px solid var(--glass-border); border-radius: 24px; padding: 12px 18px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 8px; z-index: 150; 
             animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
+            transform-origin: bottom center;
+            transition: scale 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         @keyframes slideUp { from { transform: translate(-50%, 100px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 
-        /* MODIFICA RESPONSIVITÀ MENU (Landscape/Schermi corti) */
-        @media (max-height: 600px) {
-            .floating-panel {
-                bottom: 80px; /* Dentro la dock (80+30 = 110px totali) */
-                max-height: calc(100dvh - 120px);
-                overflow-y: auto;
-                -ms-overflow-style: none;
-                scrollbar-width: none;
-            }
-            #glass-menu {
-                bottom: 110px; /* Allineato matematicamente ai 110px totali */
-                max-height: calc(100dvh - 120px);
-                overflow-y: auto;
-                -ms-overflow-style: none;
-                scrollbar-width: none;
-            }
-            #glass-menu::-webkit-scrollbar, .floating-panel::-webkit-scrollbar { 
-                display: none; 
-            }
-
-            /* Tutorial allineato anch'esso a 110px in landscape */
-            #tutorial-overlay { padding-bottom: 110px; }
-            .tutorial-card { max-height: calc(100dvh - 120px); overflow-y: auto; -ms-overflow-style: none; scrollbar-width: none; }
-            .tutorial-card::-webkit-scrollbar { display: none; }
-
-            .floating-panel { padding: 15px; gap: 10px; }
-            
-            #adjust-step-panel {
-                bottom: 10px;
-                max-height: calc(100dvh - 20px);
-                overflow-y: auto;
-                -ms-overflow-style: none; scrollbar-width: none;
-                padding: 15px; gap: 10px;
-            }
-            #adjust-step-panel::-webkit-scrollbar { display: none; }
+        /* MODIFICA RESPONSIVITÀ MENU: Rimpicciolimento (scale) automatico invece di scroll per schermi bassi */
+        @media (max-height: 750px) {
+            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.9; }
+        }
+        @media (max-height: 650px) {
+            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.8; }
+            #tutorial-overlay { padding-bottom: 100px; }
+        }
+        @media (max-height: 550px) {
+            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.7; }
+            #tutorial-overlay { padding-bottom: 90px; }
+        }
+        @media (max-height: 450px) {
+            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.6; }
+            #tutorial-overlay { padding-bottom: 80px; }
         }
 
         #a2hs-popup > div {
@@ -645,16 +628,20 @@
             </div>
 
             <div id="adjust-step-panel" class="hidden">
-                <div class="panel-header" data-i18n="step2Title">Step 2: Silhouette Fit</div>
-                <p class="text-xs text-gray-500 text-center leading-relaxed font-medium" data-i18n="step2Desc">
-                    Fine-tune the edge of your body silhouette for a realistic fit.
-                </p>
-                <div class="slider-container mt-2">
-                    <span class="text-xs font-bold text-gray-400">-</span>
-                    <input type="range" id="area-adjust-slider" min="-20" max="20" value="0">
-                    <span class="text-xs font-bold text-gray-400">+</span>
+                <div class="flex flex-col text-left w-full">
+                    <div class="panel-header !m-0 !text-left" data-i18n="step2Title">Step 2: Silhouette Fit</div>
+                    <p class="text-[10px] text-gray-500 leading-tight font-medium mt-0.5" data-i18n="step2Desc">
+                        Fine-tune the edge of your body silhouette for a realistic fit.
+                    </p>
                 </div>
-                <button id="finish-adjust-btn" class="ios-action-btn mt-2" data-i18n="btnConfirmProceed">Confirm & Proceed</button>
+                <div class="flex items-center gap-3 w-full mt-1">
+                    <div class="slider-container flex-1 !w-auto">
+                        <span class="text-xs font-bold text-gray-400">-</span>
+                        <input type="range" id="area-adjust-slider" class="flex-1" min="-20" max="20" value="0">
+                        <span class="text-xs font-bold text-gray-400">+</span>
+                    </div>
+                    <button id="finish-adjust-btn" class="ios-action-btn !w-auto !py-2 !px-4 !text-[11px] !rounded-xl shadow-sm shrink-0 !mt-0" data-i18n="btnConfirmProceed">Confirm & Proceed</button>
+                </div>
             </div>
 
             <!-- DOCK CONTROLS (Center) -->
@@ -2232,6 +2219,15 @@
                 document.getElementById('close-download-btn').addEventListener('click', closeAllMenus);
                 
                 document.getElementById('close-glass-menu-btn').addEventListener('click', closeAllMenus);
+
+                // MODIFICA MINIMA: Transizione trasparenza durante lo scorrimento dello slider sagoma
+                const startSlidingPanel = () => adjustStepPanel.classList.add('is-sliding');
+                const stopSlidingPanel = () => adjustStepPanel.classList.remove('is-sliding');
+                
+                areaAdjustSlider.addEventListener('mousedown', startSlidingPanel);
+                areaAdjustSlider.addEventListener('touchstart', startSlidingPanel, {passive: true});
+                window.addEventListener('mouseup', stopSlidingPanel);
+                window.addEventListener('touchend', stopSlidingPanel);
 
                 areaAdjustSlider.addEventListener('input', () => applyAreaAdjustment(parseInt(areaAdjustSlider.value, 10)));
 
