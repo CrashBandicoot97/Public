@@ -11,7 +11,7 @@
     <style>
         :root { --accent-color: #000000; }
         
-        body { font-family: 'Inter', sans-serif; background: #e9ecef; color: #212529; overflow: hidden; touch-action: none; }
+        body { font-family: 'Inter', sans-serif; background: #f3f4f6; color: #212529; overflow: hidden; touch-action: none; }
         .glass-ui { background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(12px) saturate(180%); -webkit-backdrop-filter: blur(12px) saturate(180%); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); transition: background-color 0.3s, opacity 0.3s; }
         #glass-menu { transform: translateY(20px) scale(0.95); opacity: 0; transition: transform 0.3s ease-out, opacity 0.3s ease-out; pointer-events: none; }
         #glass-menu.visible { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
@@ -130,7 +130,7 @@
         #lang-dropdown-list, #layer-dropdown-list { max-height: clamp(150px, 40dvh, 300px); overflow-y: auto; }
     </style>
 </head>
-<body class="antialiased w-full h-[100dvh] overflow-hidden bg-gray-200 flex flex-col relative">
+<body class="antialiased w-full h-[100dvh] overflow-hidden bg-gray-100 flex flex-col relative">
 
     <button id="mode-toggle-btn" class="fixed z-[1001] w-10 h-10 bg-white/80 backdrop-blur-md rounded-full border border-gray-200 shadow-sm flex items-center justify-center transition-transform active:scale-95 cursor-pointer pointer-events-auto">
         <span class="text-xl leading-none">🔄</span>
@@ -141,7 +141,7 @@
         <button id="btn-back" class="px-5 py-2 rounded-full font-bold text-[10px] sm:text-xs tracking-widest transition-all duration-300 text-gray-500 hover:bg-white/40 bg-transparent" data-i18n="back">BACK</button>
     </div>
 
-    <div id="canvas-container" class="flex-grow w-full h-full relative rounded-none sm:rounded-2xl overflow-hidden shadow-none sm:shadow-xl border-none sm:border border-white/20 bg-gray-100">
+    <div id="canvas-container" class="flex-grow w-full h-full relative overflow-hidden bg-gray-100">
         
         <div class="absolute top-0 right-1 z-40 flex flex-col items-end gap-1"> 
             <button id="lang-dropdown-trigger" class="p-1 flex items-center justify-center hover:scale-110 transition-transform cursor-pointer outline-none bg-transparent border-none">
@@ -1899,8 +1899,8 @@
             
             // SCREENSHOT FUNCTIONALITY
             dom.screenshotBtn.addEventListener('click', () => {
-                const targetWidth = 1200;
-                const targetHeight = 1600; 
+                const targetWidth = 2400; // Qualità raddoppiata
+                const targetHeight = 3200; 
 
                 const currentPixelRatio = viewer.renderer.getPixelRatio();
                 
@@ -1917,7 +1917,7 @@
                 const ctx = c.getContext('2d');
                 ctx.fillStyle = '#f3f4f6'; 
                 ctx.fillRect(0, 0, targetWidth, targetHeight);
-                ctx.drawImage(dom.c3dCanv, 0, 0);
+                ctx.drawImage(dom.c3dCanv, 0, 0, targetWidth, targetHeight);
                 
                 const a = document.createElement('a');
                 a.download = 'tattoo_screenshot.png';
