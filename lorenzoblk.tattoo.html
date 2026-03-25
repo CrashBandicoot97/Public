@@ -146,7 +146,7 @@
         <div class="grid grid-cols-2 gap-3 md:gap-8 w-full max-w-4xl mb-8 md:mb-12 px-3 md:px-0">
             
             <!-- CARD 1: 3D Tattoo Simulator -->
-            <a href="https://crashbandicoot97.github.io/Public/3D%20Tattoo%20Simulator.html" target="_blank" class="app-card flex flex-col items-center text-center p-5 md:p-10">
+            <a href="https://gemini.google.com/share/0dd178383565" target="_blank" class="app-card flex flex-col items-center text-center p-5 md:p-10">
                 <div class="icon-wrapper w-14 h-14 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-black flex items-center justify-center mb-5 md:mb-8 text-white shadow-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 md:w-10 md:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
@@ -162,7 +162,7 @@
             </a>
 
             <!-- CARD 2: Image Tattoo Simulator -->
-            <a href="https://crashbandicoot97.github.io/Public/Image%20Tattoo%20Simulator.html" target="_blank" class="app-card flex flex-col items-center text-center p-5 md:p-10">
+            <a href="https://gemini.google.com/share/10b1b15d2cc4" target="_blank" class="app-card flex flex-col items-center text-center p-5 md:p-10">
                 <div class="icon-wrapper w-14 h-14 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-black flex items-center justify-center mb-5 md:mb-8 text-white shadow-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 md:w-10 md:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -199,7 +199,7 @@
             const enterBtn = document.getElementById('enter-btn');
             
             let width, height, particles = [], mouse = { x: -1000, y: -1000 }, isTransitioning = false;
-            let hasInteracted = false; 
+            let lastInteractionTime = 0; // Traccia l'ultima volta che l'utente ha toccato lo schermo
             
             let PARTICLE_COUNT = window.innerWidth < 768 ? 1400 : 4000;
 
@@ -268,21 +268,27 @@
                 const globalSwayX = Math.sin(time) * 1.2;
                 const globalSwayY = Math.cos(time * 0.8) * 1.2;
 
-                if (!hasInteracted && !isTransitioning) {
-                    mouse.x = width / 2 + Math.sin(time) * (width * 0.4);
-                    mouse.y = height / 2 + Math.sin(time * 1.3) * (height * 0.4);
+                // MOVIMENTO AUTONOMO: Se l'utente non interagisce da 1.5 secondi, riprende il movimento automatico
+                if (Date.now() - lastInteractionTime > 1500 && !isTransitioning) {
+                    const autoTime = time * 0.5; // Velocità dimezzata rispetto a prima
+                    // Traiettoria "a forma di 8" (Lemniscata) che passa sempre esattamente per il centro
+                    mouse.x = width / 2 + Math.sin(autoTime) * (width * 0.4);
+                    mouse.y = height / 2 + Math.sin(autoTime * 2) * (height * 0.3);
                 }
 
                 ctx.clearRect(0, 0, width, height);
                 let particlesInCenter = 0;
-                let threshold = PARTICLE_COUNT * 0.03;
+                
+                // FIX: Aumentata la soglia dal 3% al 18% in modo che la scritta appaia molto più in fretta
+                let threshold = PARTICLE_COUNT * 0.18;
 
                 particles.forEach(p => {
                     p.update(globalSwayX, globalSwayY); 
                     p.draw();
                     if (!isTransitioning) {
                         let centerDistSq = (p.x - width/2) * (p.x - width/2) + (p.y - height/2) * (p.y - height/2);
-                        if (centerDistSq < 16900) particlesInCenter++;
+                        // FIX: Ridotto il raggio di controllo centrale (da 130 a 90) per attivarsi prima
+                        if (centerDistSq < 8100) particlesInCenter++; // 90 * 90
                     }
                 });
 
@@ -300,21 +306,21 @@
 
             window.addEventListener('resize', init);
             window.addEventListener('mousemove', e => { 
-                hasInteracted = true;
+                lastInteractionTime = Date.now();
                 mouse.x = e.clientX; 
                 mouse.y = e.clientY; 
             });
             
             window.addEventListener('touchmove', e => { 
                 if(e.touches.length > 0) {
-                    hasInteracted = true;
+                    lastInteractionTime = Date.now();
                     mouse.x = e.touches[0].clientX; 
                     mouse.y = e.touches[0].clientY; 
                 }
             });
             window.addEventListener('touchstart', e => { 
                 if(e.touches.length > 0) {
-                    hasInteracted = true;
+                    lastInteractionTime = Date.now();
                     mouse.x = e.touches[0].clientX; 
                     mouse.y = e.touches[0].clientY; 
                 }
