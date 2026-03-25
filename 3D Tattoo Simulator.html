@@ -38,11 +38,11 @@
         
         #joystick-knob { box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.8); }
 
-        #layer-list-content::-webkit-scrollbar, #lang-list-content::-webkit-scrollbar { width: 4px; }
-        #layer-list-content::-webkit-scrollbar-track, #lang-list-content::-webkit-scrollbar-track { background: transparent; }
-        #layer-list-content::-webkit-scrollbar-thumb, #lang-list-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+        #layer-list-content::-webkit-scrollbar, #lang-list-content::-webkit-scrollbar, #model-list-content::-webkit-scrollbar { width: 4px; }
+        #layer-list-content::-webkit-scrollbar-track, #lang-list-content::-webkit-scrollbar-track, #model-list-content::-webkit-scrollbar-track { background: transparent; }
+        #layer-list-content::-webkit-scrollbar-thumb, #lang-list-content::-webkit-scrollbar-thumb, #model-list-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
 
-        #layer-dropdown-list.open, #lang-dropdown-list.open { transform: scaleY(1); opacity: 1; pointer-events: auto; }
+        #layer-dropdown-list.open, #lang-dropdown-list.open, #model-dropdown-list.open { transform: scaleY(1); opacity: 1; pointer-events: auto; }
         .hidden-force { display: none !important; }
         #layer-panel.hidden { display: none; }
         
@@ -119,7 +119,7 @@
             right: max(4px, env(safe-area-inset-right)) !important;
         }
 
-        #replace-add-popup > div, #tutorial-overlay > div {
+        #replace-add-popup > div, #tutorial-overlay > div, #a2hs-popup > div {
             width: clamp(280px, 92vw, 384px) !important;
             max-height: 90dvh;
             overflow-y: auto;
@@ -310,11 +310,19 @@
                 </button>
                 
                 <!-- BOTTONE SWITCH RAPIDO MODELLO 3D -->
-                <button id="model-menu-btn" class="glass-ui w-14 h-14 rounded-full flex items-center justify-center hover:bg-white hover:scale-105 transition-all hidden shadow-md">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                </button>
+                <div id="model-dropdown-container" class="relative flex flex-col items-center hidden">
+                    <div id="model-dropdown-list" class="absolute bottom-full right-0 mb-2 w-48 bg-white/90 backdrop-blur-xl rounded-xl shadow-xl border border-white/60 overflow-hidden transition-all duration-300 origin-bottom-right transform scale-y-0 opacity-0 pointer-events-none ring-1 ring-black/5 max-h-[40dvh] overflow-y-auto z-50">
+                        <div class="p-2 border-b border-gray-100 bg-gray-50/50">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-2" data-i18n="select_model">Select Model</span>
+                        </div>
+                        <div id="model-list-content" class="p-1 space-y-1"></div>
+                    </div>
+                    <button id="model-menu-btn" class="glass-ui w-14 h-14 rounded-full flex items-center justify-center hover:bg-white hover:scale-105 transition-all shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                    </button>
+                </div>
                 
                 <button id="reset-button" class="glass-ui w-14 h-14 rounded-full flex items-center justify-center hover:bg-white hover:scale-105 transition-all hidden shadow-md">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
@@ -362,6 +370,18 @@
                 <button id="btn-popup-add" class="flex-1 py-3 rounded-xl font-bold text-white bg-black hover:bg-gray-800 transition-all active:scale-95 text-sm shadow-md" data-i18n="add_new">Add New</button>
             </div>
             <button id="btn-popup-cancel" class="text-xs font-semibold text-gray-400 hover:text-gray-600 mt-1 uppercase tracking-wider" data-i18n="cancel">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Popup Add to Home Screen -->
+    <div id="a2hs-popup" class="absolute inset-0 z-[80] hidden flex items-center justify-center bg-gray-900/50 backdrop-blur-sm transition-opacity">
+        <div class="bg-white/90 backdrop-blur-xl border border-white/60 p-6 rounded-3xl shadow-2xl w-11/12 max-w-sm text-center flex flex-col gap-4 scale-100 transition-transform">
+            <div class="w-14 h-14 bg-white border border-gray-200 rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-1">
+                <span class="text-3xl leading-none">📱</span>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900" data-i18n="a2hs_title">Add to Home Screen</h3>
+            <p class="text-sm text-gray-600 px-2 leading-relaxed" data-i18n="a2hs_desc">Install this app on your device for the best experience! Tap the Share icon and select "Add to Home Screen".</p>
+            <button id="btn-a2hs-close" class="mt-2 w-full py-3.5 rounded-xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-300 transition-all active:scale-95 text-sm shadow-sm" data-i18n="a2hs_close">Not now</button>
         </div>
     </div>
 
@@ -466,7 +486,11 @@
                 'popup_title': 'Tattoo Options',
                 'popup_msg': 'You have already applied one or more tattoos. Do you want to replace the currently selected tattoo or add a new one?',
                 'add_new': 'Add New',
-                'replace': 'Replace'
+                'replace': 'Replace',
+                'select_model': 'Select Model',
+                'a2hs_title': 'Add to Home Screen',
+                'a2hs_desc': 'Install this app on your device for the best experience! Tap the Share icon and select "Add to Home Screen".',
+                'a2hs_close': 'Not now'
             },
             'IT': {
                 'front': 'FRONTE', 'back': 'RETRO',
@@ -490,7 +514,11 @@
                 'popup_title': 'Opzioni Tatuaggio',
                 'popup_msg': 'Hai già applicato uno o più tatuaggi. Vuoi sostituire l\'attuale tatuaggio selezionato o aggiungerne uno nuovo?',
                 'add_new': 'Aggiungi',
-                'replace': 'Sostituisci'
+                'replace': 'Sostituisci',
+                'select_model': 'Seleziona Modello',
+                'a2hs_title': 'Aggiungi alla schermata Home',
+                'a2hs_desc': 'Tocca l\'icona Condividi e seleziona "Aggiungi alla schermata Home". In questo modo potrai utilizzare il simulatore come una vera e propria App per telefono',
+                'a2hs_close': 'Non ora'
             }
         };
 
@@ -499,6 +527,7 @@
         
         let isPresetMode = true;
         window.currentActionCallback = null;
+        let hasShownA2HSPopup = false;
 
         function applyTranslations() {
             document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -574,6 +603,9 @@
             tutOverlay:document.getElementById('tutorial-overlay'),tutTitle:document.getElementById('tut-title'),tutDesc:document.getElementById('tut-desc'),tutIconContainer:document.getElementById('tut-icon-container'),tutDots:document.getElementById('tut-dots'),tutPrevBtn:document.getElementById('tut-prev-btn'),tutNextBtn:document.getElementById('tut-next-btn'),tutSkipBtn:document.getElementById('tut-skip-btn'),
             resetBtn:document.getElementById('reset-button'),tutBtn:document.getElementById('tutorial-toggle-button'),screenshotBtn:document.getElementById('screenshot-button'),recordBtn:document.getElementById('record-button'),
             presetCont:document.getElementById('preset-palette-container'),catSelect:document.getElementById('category-select'),
+            modelDropdownCont:document.getElementById('model-dropdown-container'),
+            modelDropdownList:document.getElementById('model-dropdown-list'),
+            modelListContent:document.getElementById('model-list-content'),
             btnModelMenu:document.getElementById('model-menu-btn'),
             viewToggles:document.getElementById('view-toggles'),btnFront:document.getElementById('btn-front'),btnBack:document.getElementById('btn-back'),
             joystick:document.getElementById('joystick-zone'), joyLabel:document.getElementById('joy-label'),
@@ -610,7 +642,9 @@
             replaceAddPopup: document.getElementById('replace-add-popup'),
             btnPopupReplace: document.getElementById('btn-popup-replace'),
             btnPopupAdd: document.getElementById('btn-popup-add'),
-            btnPopupCancel: document.getElementById('btn-popup-cancel')
+            btnPopupCancel: document.getElementById('btn-popup-cancel'),
+            a2hsPopup: document.getElementById('a2hs-popup'),
+            btnA2hsClose: document.getElementById('btn-a2hs-close')
         };
         
         let meshes1=[],meshes2=[],selMesh1,selMesh2,modelsData,viewer,statusTimeout,dragMode;
@@ -677,7 +711,8 @@
             const isMenuOpen = dom.menu.classList.contains('visible');
             const isDropdownOpen = dom.layerDropdownList.classList.contains('open');
             const isLangDropdownOpen = dom.langList.classList.contains('open');
-            const anyOpen = isMenuOpen || isDropdownOpen || isLangDropdownOpen;
+            const isModelDropdownOpen = dom.modelDropdownList && dom.modelDropdownList.classList.contains('open');
+            const anyOpen = isMenuOpen || isDropdownOpen || isLangDropdownOpen || isModelDropdownOpen;
             
             const setBlur = (el, shouldBlur) => {
                 if(!el) return;
@@ -689,9 +724,10 @@
             elementsToBlur.forEach(el => setBlur(el, anyOpen));
 
             setBlur(dom.viewToggles, anyOpen);
-            setBlur(dom.menuToggle, isDropdownOpen || isLangDropdownOpen);
-            setBlur(dom.layerPanel, isLangDropdownOpen);
-            setBlur(dom.langTrigger, isDropdownOpen);
+            setBlur(dom.menuToggle, isDropdownOpen || isLangDropdownOpen || isModelDropdownOpen);
+            setBlur(dom.layerPanel, isLangDropdownOpen || isModelDropdownOpen);
+            setBlur(dom.langTrigger, isDropdownOpen || isModelDropdownOpen);
+            setBlur(dom.btnModelMenu, isDropdownOpen || isLangDropdownOpen);
             
             dom.c3dCont.classList.toggle('menu-overlay-active', anyOpen);
             
@@ -888,6 +924,10 @@
                     modelFolders = data.files;
                     currentModelIndex = 0;
                     
+                    if (modelFolders.length > 1 && typeof renderModelDropdown === 'function') {
+                        renderModelDropdown();
+                    }
+                    
                     // Carica automaticamente il primo modello trovato
                     loadModelFromFolder(modelFolders[currentModelIndex].id);
                 } else {
@@ -974,7 +1014,9 @@
                     dom.viewToggles.classList.remove('hidden');
                     dom.joystick.classList.remove('hidden');
                     dom.joyLabel.classList.remove('hidden');
-                    dom.btnModelMenu.classList.remove('hidden'); 
+                    if (modelFolders.length > 1 && dom.modelDropdownCont) {
+                        dom.modelDropdownCont.classList.remove('hidden');
+                    }
                 }catch(e){
                     updateStatus(`Error: ${e.message}`,false);
                 }
@@ -1066,6 +1108,14 @@
             switchLayer(activeLayerIndex); 
             updateStatus(`${i18n[currentLang]['tattoo_n']} ${activeLayerIndex+1} ${i18n[currentLang]['ready']}.`,false,true);
             setUIMode(true);
+
+            // A2HS Trigger: Mostra il popup 1.5 secondi dopo l'applicazione della prima texture
+            if (!hasShownA2HSPopup) {
+                hasShownA2HSPopup = true;
+                setTimeout(() => {
+                    dom.a2hsPopup.classList.remove('hidden');
+                }, 1500);
+            }
         };
 
         const processImg=(img,cb)=>{const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const x=c.getContext('2d');x.drawImage(img,0,0);const o=x.getImageData(0,0,img.width,img.height),d=dilatePixels(o),data=d.data;for(let i=0;i<data.length;i+=4){const a=o.data[i+3]/255;data[i]*=a;data[i+1]*=a;data[i+2]*=a;data[i+3]=o.data[i+3];}const t=new THREE.DataTexture(data,img.width,img.height,THREE.RGBAFormat);Object.assign(t,{premultiplyAlpha:true,needsUpdate:true,generateMipmaps:true,minFilter:THREE.LinearMipmapLinearFilter,magFilter:THREE.LinearFilter,anisotropy:viewer.renderer.capabilities.getMaxAnisotropy()});cb(t);};
@@ -1571,6 +1621,46 @@
             dom.tutOverlay.classList.remove('hidden');
         };
         
+        // Rendering Menu Modelli
+        window.renderModelDropdown = () => {
+            if (!dom.modelListContent) return;
+            dom.modelListContent.innerHTML = '';
+            modelFolders.forEach((folder, index) => {
+                const item = document.createElement('div');
+                const isSelected = index === currentModelIndex;
+                item.className = `w-full flex items-center gap-2 p-2 rounded-lg transition-colors cursor-pointer ${isSelected ? 'bg-gray-100 border border-gray-400 ring-1 ring-gray-900' : 'hover:bg-gray-50 border border-transparent'}`;
+
+                const contentArea = document.createElement('button');
+                contentArea.className = "flex-grow flex items-center gap-3 text-left outline-none pointer-events-none";
+
+                const textDiv = document.createElement('div');
+                textDiv.innerHTML = `<span class="block text-xs font-bold ${isSelected ? 'text-black' : 'text-gray-700'}">${folder.name}</span>`;
+                contentArea.appendChild(textDiv);
+
+                if (isSelected) {
+                    const check = document.createElement('div');
+                    check.className = "ml-auto text-[9px] font-bold text-white bg-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm";
+                    check.textContent = "✓";
+                    contentArea.appendChild(check);
+                }
+
+                item.appendChild(contentArea);
+
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    if (currentModelIndex === index) return;
+                    currentModelIndex = index;
+                    renderModelDropdown();
+                    dom.modelDropdownList.classList.remove('open');
+                    updateInterfaceVisibility();
+                    updateStatus(`Switching to: ${folder.name}...`, true, false);
+                    loadModelFromFolder(folder.id);
+                };
+
+                dom.modelListContent.appendChild(item);
+            });
+        };
+
         window.addEventListener('load',()=>{
             viewer={scene:new THREE.Scene(),camera:new THREE.PerspectiveCamera(50,1,.1,1e3),renderer:new THREE.WebGLRenderer({canvas:dom.c3dCanv,antialias:true,alpha:true,powerPreference:"high-performance"}),c3dCont:dom.c3dCont};
             viewer.camera.position.z=2;
@@ -1699,16 +1789,15 @@
 
             loadDynamicPresets();
             
-            // Bottone Switch Rapido Modelli 3D
-            dom.btnModelMenu.addEventListener('click', () => {
-                if (modelFolders.length <= 1) return; // Niente a cui fare lo switch
-                
-                // Passa al prossimo modello nella lista
-                currentModelIndex = (currentModelIndex + 1) % modelFolders.length;
-                const nextModelFolder = modelFolders[currentModelIndex];
-                
-                updateStatus(`Switching to: ${nextModelFolder.name}...`, true, false);
-                loadModelFromFolder(nextModelFolder.id);
+            // Bottone Switch Rapido Modelli 3D - Event Listener Aggiornato
+            dom.btnModelMenu.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (modelFolders.length <= 1) return; 
+                dom.langList.classList.remove('open');
+                closeLayerDropdown();
+                const isOpen = dom.modelDropdownList.classList.contains('open');
+                dom.modelDropdownList.classList.toggle('open', !isOpen);
+                updateInterfaceVisibility();
             });
             
             dom.modeToggleBtn.addEventListener('click', () => {
@@ -1726,12 +1815,14 @@
             dom.layerDropdownTrigger.addEventListener('click', (e) => {
                 e.stopPropagation();
                 dom.langList.classList.remove('open');
+                if (dom.modelDropdownList) dom.modelDropdownList.classList.remove('open');
                 toggleLayerDropdown();
             });
 
             dom.langTrigger.addEventListener('click', (e) => {
                 e.stopPropagation();
                 closeLayerDropdown();
+                if (dom.modelDropdownList) dom.modelDropdownList.classList.remove('open');
                 const isOpen = dom.langList.classList.contains('open');
                 dom.langList.classList.toggle('open', !isOpen);
                 updateInterfaceVisibility();
@@ -1758,6 +1849,15 @@
                     dom.langList.classList.remove('open');
                     updateInterfaceVisibility();
                 }
+                if(dom.modelDropdownList && !dom.modelDropdownList.contains(e.target) && !dom.btnModelMenu.contains(e.target)) {
+                    dom.modelDropdownList.classList.remove('open');
+                    updateInterfaceVisibility();
+                }
+            });
+
+            // Gestione chiusura popup A2HS
+            dom.btnA2hsClose.addEventListener('click', () => {
+                dom.a2hsPopup.classList.add('hidden');
             });
 
             const startJoy = (e) => { e.preventDefault(); joy.active = true; const rect = joy.base.getBoundingClientRect(); joy.base.dataset.centerX = rect.left + rect.width / 2; joy.base.dataset.centerY = rect.top + rect.height / 2; if(e.type === 'mousedown') { document.addEventListener('mousemove', moveJoy); document.addEventListener('mouseup', endJoy); } };
