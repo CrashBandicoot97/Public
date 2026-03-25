@@ -700,10 +700,10 @@
         const applyAppMode = () => {
             if (isPresetMode) {
                 dom.imgActionsCont.classList.add('hidden-force');
-                if(dom.presetAreaWrapper) dom.presetAreaWrapper.classList.remove('hidden');
+                if(dom.presetAreaWrapper) dom.presetAreaWrapper.classList.remove('hidden-force');
             } else {
                 dom.imgActionsCont.classList.remove('hidden-force');
-                if(dom.presetAreaWrapper) dom.presetAreaWrapper.classList.add('hidden');
+                if(dom.presetAreaWrapper) dom.presetAreaWrapper.classList.add('hidden-force');
             }
         };
 
