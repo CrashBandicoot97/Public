@@ -1220,7 +1220,9 @@
             document.getElementById('close-glass-menu-btn').classList.add('hidden');
             
             const initDefaultBackground = () => {
-                const defaultUrl = "https://images.squarespace-cdn.com/content/v1/65ca6e41558ea420ef592763/ec97f88c-58fd-46ae-8657-cbb9490153d9/Achromatic-3.jpg";
+                // MODIFICA MINIMA: Aggiornata l'immagine di default con il link Drive fornito.
+                // Viene usato lo stesso sistema di decodifica (wsrv.nl) dei preset tatuaggi per evitare blocchi di sicurezza (CORS) del browser.
+                const defaultUrl = "https://wsrv.nl/?url=" + encodeURIComponent("https://drive.google.com/uc?id=1JGIsiaCUjeg88Cu_EaQY86yIbDRKTpQJ");
 
                 photoImage.crossOrigin = "Anonymous";
                 isBodyProcessed = false;
