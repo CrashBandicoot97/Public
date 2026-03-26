@@ -50,7 +50,7 @@
         }
         
         #glass-menu { 
-            position: fixed; 
+            position: absolute; 
             bottom: 120px; 
             left: 50%;
             transform: translateX(-50%) translateY(20px) scale(0.95); 
@@ -253,7 +253,7 @@
         }
 
         .floating-panel { 
-            position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) scale(0.95); width: 320px; 
+            position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%) scale(0.95); width: 320px; 
             background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); 
             -webkit-backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-border); 
             border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
@@ -397,7 +397,7 @@
         .flex-row-controls { display: flex; flex-direction: row !important; gap: 10px; }
         
         #adjust-step-panel { 
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 380px; 
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 380px; 
             background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); 
             border: 1px solid var(--glass-border); border-radius: 24px; padding: 12px 18px; 
             box-shadow: 0 8px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 8px; z-index: 150; 
@@ -442,18 +442,18 @@
         @keyframes slideUp { from { transform: translate(-50%, 100px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 
         @media (max-height: 750px) {
-            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.95; }
+            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.9; }
         }
         @media (max-height: 650px) {
-            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.9; }
+            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.8; }
             #tutorial-overlay { padding-bottom: 100px; }
         }
         @media (max-height: 550px) {
-            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.85; }
+            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.7; }
             #tutorial-overlay { padding-bottom: 90px; }
         }
         @media (max-height: 450px) {
-            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.75; }
+            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.6; }
             #tutorial-overlay { padding-bottom: 80px; }
         }
 
@@ -702,11 +702,6 @@
                     <button id="download-fab" class="dock-btn dock-disabled">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                     </button>
-                    <div id="download-menu" class="floating-panel">
-                        <div class="panel-header" data-i18n="panelExportTitle">Export</div>
-                        <button id="download-btn" class="ios-action-btn" data-i18n="btnSaveCameraRoll">Save to Camera Roll</button>
-                        <button id="close-download-btn" class="ios-action-btn ghost text-xs mt-0 block mx-auto" data-i18n="btnCloseExport">Close Export</button>
-                    </div>
                 </div>
 
                 <div class="group">
@@ -718,28 +713,6 @@
                             <path d="M10 2v2"/>
                         </svg>
                     </button>
-                    <div id="segment-menu" class="floating-panel">
-                        <div class="panel-header" data-i18n="panelSilhTitle">Body Silhouette</div>
-                        <div id="brush-controls">
-                            <div class="ios-btn-group">
-                                <button id="add-area-btn" class="ios-btn active" data-i18n="btnAdd">Add</button>
-                                <button id="remove-area-btn" class="ios-btn" data-i18n="btnErase">Erase</button>
-                            </div>
-                            <button id="clear-area-btn" class="ios-action-btn secondary text-sm py-2 mt-2" data-i18n="btnResetSilh">Reset Silhouette</button>
-                        </div>
-                        <div id="brush-size-controls" class="mt-2">
-                            <label class="text-xs text-gray-500 ml-1 mb-1 block font-semibold" data-i18n="lblBrushPreview">Brush Size Preview</label>
-                            <div class="brush-preview-box">
-                                <div id="brush-indicator" class="brush-indicator" style="width: 40px; height: 40px;"></div>
-                            </div>
-                            <div class="slider-container mt-2">
-                                <span class="text-xs text-gray-400" data-i18n="lblMin">Min</span>
-                                <input type="range" id="brush-size-slider" min="5" max="100" value="40">
-                                <span class="text-xs text-gray-400" data-i18n="lblMax">Max</span>
-                            </div>
-                        </div>
-                        <button id="close-segment-btn" class="ios-action-btn ghost text-xs mt-0 block mx-auto" data-i18n="btnCloseSilh">Close Silhouette</button>
-                    </div>
                 </div>
 
                 <div class="group">
@@ -749,6 +722,37 @@
                         </svg>
                     </button>
                 </div>
+            </div>
+
+            <!-- MODIFICA: I menu a scomparsa sono stati spostati FUORI dal contenitore dei bottoni 
+                 così da centrarsi perfettamente allo schermo senza essere influenzati dalla posizione dei pulsanti -->
+            <div id="download-menu" class="floating-panel">
+                <div class="panel-header" data-i18n="panelExportTitle">Export</div>
+                <button id="download-btn" class="ios-action-btn" data-i18n="btnSaveCameraRoll">Save to Camera Roll</button>
+                <button id="close-download-btn" class="ios-action-btn ghost text-xs mt-0 block mx-auto" data-i18n="btnCloseExport">Close Export</button>
+            </div>
+
+            <div id="segment-menu" class="floating-panel">
+                <div class="panel-header" data-i18n="panelSilhTitle">Body Silhouette</div>
+                <div id="brush-controls">
+                    <div class="ios-btn-group">
+                        <button id="add-area-btn" class="ios-btn active" data-i18n="btnAdd">Add</button>
+                        <button id="remove-area-btn" class="ios-btn" data-i18n="btnErase">Erase</button>
+                    </div>
+                    <button id="clear-area-btn" class="ios-action-btn secondary text-sm py-2 mt-2" data-i18n="btnResetSilh">Reset Silhouette</button>
+                </div>
+                <div id="brush-size-controls" class="mt-2">
+                    <label class="text-xs text-gray-500 ml-1 mb-1 block font-semibold" data-i18n="lblBrushPreview">Brush Size Preview</label>
+                    <div class="brush-preview-box">
+                        <div id="brush-indicator" class="brush-indicator" style="width: 40px; height: 40px;"></div>
+                    </div>
+                    <div class="slider-container mt-2">
+                        <span class="text-xs text-gray-400" data-i18n="lblMin">Min</span>
+                        <input type="range" id="brush-size-slider" min="5" max="100" value="40">
+                        <span class="text-xs text-gray-400" data-i18n="lblMax">Max</span>
+                    </div>
+                </div>
+                <button id="close-segment-btn" class="ios-action-btn ghost text-xs mt-0 block mx-auto" data-i18n="btnCloseSilh">Close Silhouette</button>
             </div>
 
             <div id="glass-menu" class="glass-ui">
