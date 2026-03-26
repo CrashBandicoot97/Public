@@ -50,10 +50,10 @@
         }
         
         #glass-menu { 
-            position: absolute; 
+            position: fixed; 
             bottom: 120px; 
-            left: 50%;
-            transform: translateX(-50%) translateY(20px) scale(0.95); 
+            left: 0; right: 0; margin: 0 auto;
+            transform: translateY(20px) scale(0.95); 
             opacity: 0; 
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease-out, scale 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
             pointer-events: none; 
@@ -67,7 +67,7 @@
             transform-origin: bottom center;
         }
         #glass-menu.visible { 
-            transform: translateX(-50%) translateY(0) scale(1); 
+            transform: translateY(0) scale(1); 
             opacity: 1; 
             pointer-events: auto; 
         }
@@ -226,13 +226,13 @@
 
         /* --- DOCK & PANELS --- */
         .ui-dock-container { 
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); 
+            position: fixed; bottom: 30px; left: 0; right: 0; margin: 0 auto; 
             display: flex; align-items: flex-end; justify-content: center; gap: 12px; 
-            z-index: 100; width: auto; max-width: 95%; pointer-events: none; opacity: 0; 
+            z-index: 100; width: max-content; max-width: 95%; pointer-events: none; opacity: 0; 
             transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); 
         }
-        .ui-dock-container.visible-dock { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0) scale(1); }
-        .ui-dock-container.dock-hidden-down { opacity: 0; pointer-events: none; transform: translateX(-50%) translateY(30px) scale(0.9); }
+        .ui-dock-container.visible-dock { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+        .ui-dock-container.dock-hidden-down { opacity: 0; pointer-events: none; transform: translateY(30px) scale(0.9); }
 
         .dock-btn { 
             pointer-events: auto; width: 56px; height: 56px; border-radius: 50%; 
@@ -253,16 +253,17 @@
         }
 
         .floating-panel { 
-            position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%) scale(0.95); width: 320px; 
+            position: fixed; bottom: 90px; left: 0; right: 0; margin: 0 auto; width: 320px; 
             background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); 
             -webkit-backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-border); 
             border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
             opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1), scale 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
             display: flex; flex-direction: column; gap: 15px; z-index: 99; 
+            transform: scale(0.95);
             transform-origin: bottom center;
         }
-        .floating-panel.visible { opacity: 1; transform: translateX(-50%) scale(1); pointer-events: auto; }
-        .floating-panel.temp-hidden { opacity: 0 !important; pointer-events: none !important; transform: translateX(-50%) scale(0.9) !important; }
+        .floating-panel.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
+        .floating-panel.temp-hidden { opacity: 0 !important; pointer-events: none !important; transform: scale(0.9) !important; }
 
         .panel-header { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-sec); text-align: center; margin-bottom: 5px; font-weight: 700; }
         .ios-btn-group { display: flex; background: rgba(0,0,0,0.05); border-radius: 14px; padding: 3px; gap: 2px; }
@@ -397,7 +398,7 @@
         .flex-row-controls { display: flex; flex-direction: row !important; gap: 10px; }
         
         #adjust-step-panel { 
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 380px; 
+            position: fixed; bottom: 30px; left: 0; right: 0; margin: 0 auto; width: 92%; max-width: 380px; 
             background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); 
             border: 1px solid var(--glass-border); border-radius: 24px; padding: 12px 18px; 
             box-shadow: 0 8px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 8px; z-index: 150; 
@@ -439,7 +440,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
         }
 
-        @keyframes slideUp { from { transform: translate(-50%, 100px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         @media (max-height: 750px) {
             #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.9; }
