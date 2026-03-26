@@ -50,15 +50,14 @@
         }
         
         #glass-menu { 
-            position: absolute; 
-            /* MODIFICA: Portato a 120px per allinearsi matematicamente ai menu dentro la dock (90px + 30px di offset) */
+            position: fixed; 
             bottom: 120px; 
             left: 50%;
             transform: translateX(-50%) translateY(20px) scale(0.95); 
             opacity: 0; 
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease-out, scale 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
             pointer-events: none; 
-            width: 320px; /* Allargato a 320px per ospitare 3 colonne */
+            width: 320px; 
             padding: 4px; 
             border-radius: 24px; 
             display: flex; 
@@ -83,16 +82,14 @@
             animation: pulse-border 2s infinite;
             border: 1.5px solid black !important;
             transform: scale(1.02);
-            z-index: 50; /* Ensure it stays on top */
+            z-index: 50; 
         }
 
-        /* Quando siamo nello step 1, disabilitiamo tutto tranne il body btn */
         .menu-locked-step1 .disable-on-lock {
             opacity: 0.3;
             pointer-events: none;
             filter: grayscale(1);
         }
-        /* Assicuriamo che il body btn sia attivo */
         .menu-locked-step1 #btn-upload-body {
             opacity: 1;
             pointer-events: auto;
@@ -128,7 +125,6 @@
         #img-proc-overlay.active { opacity: 1; pointer-events: auto; }
         #img-proc-overlay.inactive { opacity: 0; pointer-events: none; }
 
-        /* CLEAN WHITE CARD STYLE */
         .clean-card {
             background-color: #f9fafb;
             background-image:
@@ -210,7 +206,6 @@
             position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; perspective: 1000px; 
         }
 
-        /* MODIFICA RESPONSIVITÀ: Calcolo altezza massima ridotto per garantire lo spazio di non sovrapposizione in alto e in basso */
         .canvas-glass-container { 
             position: relative; max-width: calc(100vw - 30px); max-height: calc(100dvh - 180px); 
             transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); border-radius: 24px; 
@@ -222,7 +217,6 @@
             .canvas-glass-container { max-width: 90vw; max-height: calc(100dvh - 180px); } 
         }
         @media (max-height: 500px) { 
-            /* Regola specifica per dispositivi molto corti in orizzontale */
             .canvas-glass-container { max-height: calc(100dvh - 100px); } 
         }
 
@@ -259,7 +253,7 @@
         }
 
         .floating-panel { 
-            position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%) scale(0.95); width: 320px; 
+            position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) scale(0.95); width: 320px; 
             background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); 
             -webkit-backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-border); 
             border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
@@ -338,7 +332,6 @@
         input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 6px; background: rgba(0,0,0,0.1); border-radius: 3px; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: white; margin-top: -7px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 1px solid rgba(0,0,0,0.1); transition: transform 0.1s; }
         
-        /* Stili specifici per lo zoom slider PC per non intaccare gli altri slider */
         #zoom-slider::-webkit-slider-thumb { 
             -webkit-appearance: none; 
             appearance: none; 
@@ -349,7 +342,7 @@
             cursor: pointer; 
             border: 2px solid #fff; 
             box-shadow: 0 1px 3px rgba(0,0,0,0.3); 
-            margin-top: -4px; /* Centrato rispetto al track di Tailwind */
+            margin-top: -4px; 
         }
         #zoom-slider::-moz-range-thumb { 
             width: 14px; 
@@ -369,7 +362,6 @@
             backdrop-filter: blur(8px); z-index: 200; display: flex; flex-direction: column; 
             align-items: center; justify-content: center; transition: opacity 0.5s ease; 
         }
-        /* MODIFICA: Portato il padding-bottom a 120px per allinearlo perfettamente a tutti gli altri menu a scomparsa */
         #tutorial-overlay { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; justify-content: flex-end; padding-bottom: 120px; }
 
         .welcome-content { 
@@ -405,17 +397,15 @@
         .flex-row-controls { display: flex; flex-direction: row !important; gap: 10px; }
         
         #adjust-step-panel { 
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 380px; 
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 380px; 
             background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); 
             border: 1px solid var(--glass-border); border-radius: 24px; padding: 12px 18px; 
             box-shadow: 0 8px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 8px; z-index: 150; 
             animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
             transform-origin: bottom center;
-            /* MODIFICA: aggiunte le transizioni per la trasparenza dinamica */
             transition: scale 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, backdrop-filter 0.2s ease;
         }
 
-        /* MODIFICA: Regole per smaterializzare il menu quando si tocca lo slider */
         #adjust-step-panel.is-sliding {
             background-color: transparent !important;
             backdrop-filter: blur(0px) saturate(100%) !important;
@@ -434,7 +424,6 @@
             pointer-events: none;
         }
 
-        /* MODIFICA: Ingrandimento pallino e traccia della barra scorrimento per lo Step 2 */
         #area-adjust-slider::-webkit-slider-thumb {
             height: 28px !important;
             width: 28px !important;
@@ -452,20 +441,19 @@
 
         @keyframes slideUp { from { transform: translate(-50%, 100px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 
-        /* MODIFICA RESPONSIVITÀ MENU: Rimpicciolimento (scale) automatico invece di scroll per schermi bassi */
         @media (max-height: 750px) {
-            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.9; }
+            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.95; }
         }
         @media (max-height: 650px) {
-            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.8; }
+            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.9; }
             #tutorial-overlay { padding-bottom: 100px; }
         }
         @media (max-height: 550px) {
-            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.7; }
+            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.85; }
             #tutorial-overlay { padding-bottom: 90px; }
         }
         @media (max-height: 450px) {
-            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.6; }
+            #glass-menu, .floating-panel, .tutorial-card, #adjust-step-panel { scale: 0.75; }
             #tutorial-overlay { padding-bottom: 80px; }
         }
 
@@ -474,9 +462,30 @@
             max-height: 90dvh;
             overflow-y: auto;
         }
+
+        /* LOUPE / MAGNIFYING GLASS */
+        #loupe-canvas {
+            position: fixed;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25), inset 0 0 10px rgba(0,0,0,0.1);
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+            background: #fff;
+        }
+        #loupe-canvas.active {
+            opacity: 1;
+            transform: scale(1);
+        }
     </style>
 </head>
 <body>
+    <canvas id="loupe-canvas"></canvas>
 
     <header id="global-header">
         <div class="header-actions relative">
@@ -665,7 +674,6 @@
             </div>
 
             <div id="adjust-step-panel" class="hidden">
-                <!-- MODIFICA: aggiunto ID adjust-step-text-wrap al contenitore del testo -->
                 <div id="adjust-step-text-wrap" class="flex flex-col text-left w-full">
                     <div class="panel-header !m-0 !text-left" data-i18n="step2Title">Step 2: Silhouette Fit</div>
                     <p class="text-[10px] text-gray-500 leading-tight font-medium mt-0.5" data-i18n="step2Desc">
@@ -678,7 +686,6 @@
                         <input type="range" id="area-adjust-slider" class="flex-1 w-full cursor-pointer" min="-20" max="20" value="0">
                         <span class="text-sm font-bold text-gray-400">+</span>
                     </div>
-                    <!-- MODIFICA: Bottone ristretto con !w-2/3 e centrato con mx-auto -->
                     <button id="finish-adjust-btn" class="ios-action-btn !w-2/3 mx-auto !py-3 !text-[13px] !rounded-xl shadow-sm !mt-0" data-i18n="btnConfirmProceed">Confirm</button>
                 </div>
             </div>
@@ -943,7 +950,6 @@
             }
         };
 
-        // Salvavita: manteniamo i preset fissi solo come piano di riserva in caso di errori con Google Drive
         const DEFAULT_PRESETS = {
             'Traditional': [
                 {name:'Eagle', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
@@ -970,7 +976,6 @@
             ]
         };
 
-        // Permettiamo all'app di aggiornare dinamicamente il menu in tempo reale da Drive
         let PRESETS = {};
 
         let tutorialSteps = [...translations['en'].tutSteps];
@@ -1001,6 +1006,13 @@
             const langDropdown = document.getElementById('lang-dropdown');
             const currentLangFlag = document.getElementById('current-lang-flag');
 
+            // --- LOUPE ELEMENTS ---
+            const loupeCanvas = document.getElementById('loupe-canvas');
+            const loupeCtx = loupeCanvas.getContext('2d', { alpha: false });
+            loupeCanvas.width = 160; // Risoluzione interna
+            loupeCanvas.height = 160;
+            let lastClientPos = null;
+
             // --- DESKTOP CONTROLS ---
             const desktopControls = document.getElementById('desktop-controls');
             const zoomSlider = document.getElementById('zoom-slider');
@@ -1018,7 +1030,7 @@
 
             // --- LOGICA TOGGLE MODALITA' ---
             let isPresetMode = true;
-            let hasShownA2HSPopup = false; // AGGIUNTO: Sentinella per assicurarsi che il popup venga mostrato solo 1 volta
+            let hasShownA2HSPopup = false; 
 
             function applyAppMode() {
                 if (!modeToggleBtn) return;
@@ -1137,7 +1149,6 @@
             const a2hsPopup = document.getElementById('a2hs-popup');
             const btnA2hsClose = document.getElementById('btn-a2hs-close');
 
-            // --- IMG PROCESS OVERLAY ELEMENTS ---
             const imgProcOverlay = document.getElementById('img-proc-overlay');
             const cardOptionOriginal = document.getElementById('card-option-original');
             const previewOptOriginal = document.getElementById('preview-opt-original');
@@ -1161,8 +1172,8 @@
             let originalTattooSource = null; 
             let currentBlackLevel = 1;
 
-            let tattooBitmap = null; // AGGIUNTO: Cache GPU per il tatuaggio
-            let isBodyProcessed = false; // AGGIUNTO: Controllo risoluzione
+            let tattooBitmap = null; 
+            let isBodyProcessed = false; 
 
             let segmentationResult = null;
             let segmenter = null;
@@ -1186,7 +1197,6 @@
             let isSegmentMenuLocked = false;
             let isExporting = false; 
 
-            // LOGICA VISIBILITÀ CONTROLLI PC
             function updateDesktopControlsVisibility() {
                 if (isMobile) {
                     desktopControls.classList.add('hidden');
@@ -1194,7 +1204,6 @@
                 }
                 const isDockVisible = uiDockContainer.classList.contains('visible-dock');
                 
-                // Show if we have a tattoo, main dock is visible, and we are in the main editor state
                 if (isDockVisible && tattooImage.src && !isDefiningZones && currentAppState === 'EDITOR') {
                     desktopControls.classList.remove('hidden');
                     setTimeout(() => desktopControls.style.opacity = '1', 10);
@@ -1204,12 +1213,10 @@
                 }
             }
 
-            // GESTIONE SLIDER E BOTTONI PC
             zoomSlider.addEventListener('input', (e) => {
                 tattooProps.scale = parseFloat(e.target.value);
-                draw(); // Triggera un draw leggero durante lo scroll (protetto da RAF)
+                draw(); 
             });
-            // MODIFICA MINIMA: Assicuriamo un frame perfetto ed incontaminato non appena rilasci lo slider su PC
             zoomSlider.addEventListener('change', () => {
                 setTimeout(executeDraw, 50);
             });
@@ -1234,7 +1241,6 @@
             btnRotCcw.addEventListener('mouseleave', stopRot);
 
 
-            // INITIALIZATION: IMMEDIATELY SHOW APP AND LOCK MENU FOR STEP 1
             document.body.classList.add('app-active');
             mainContainer.classList.remove('hidden');
             glassMenu.classList.add('visible');
@@ -1246,8 +1252,6 @@
             document.getElementById('close-glass-menu-btn').classList.add('hidden');
             
             const initDefaultBackground = () => {
-                // MODIFICA MINIMA: Aggiornata l'immagine di default con il link Drive fornito.
-                // Viene usato lo stesso sistema di decodifica (wsrv.nl) dei preset tatuaggi per evitare blocchi di sicurezza (CORS) del browser.
                 const defaultUrl = "https://wsrv.nl/?url=" + encodeURIComponent("https://drive.google.com/uc?id=1JGIsiaCUjeg88Cu_EaQY86yIbDRKTpQJ");
 
                 photoImage.crossOrigin = "Anonymous";
@@ -1263,16 +1267,14 @@
             };
             
             initDefaultBackground();
-            applyTranslations(); // Set default strings explicitly 
+            applyTranslations(); 
 
             function setAppState(newState) {
                 currentAppState = newState;
                 if (currentAppState === 'EDITOR') {
                     globalBackBtn.classList.remove('hidden');
-                    // RIMOSSO IL COMANDO CHE NASCONDEVA IL BOTTONE
                 } else {
                     globalBackBtn.classList.add('hidden');
-                    // RIMOSSO IL COMANDO CHE NASCONDEVA IL BOTTONE
                 }
                 updateDesktopControlsVisibility();
             }
@@ -1283,19 +1285,16 @@
                 }
             });
 
-            // Chiudi il modal dell'errore API in sicurezza
             document.getElementById('api-error-close-btn').addEventListener('click', () => {
                 document.getElementById('api-error-modal-overlay').classList.add('hidden');
             });
             
-            // Chiudi il modal A2HS
             btnA2hsClose.addEventListener('click', () => {
                 a2hsPopup.classList.add('hidden');
             });
 
             const MAX_PROCESSING_DIMENSION = 1920; 
 
-            // --- MENU TOGGLING ---
             menuToggleBtn.addEventListener('click', () => {
                 const isOpening = !glassMenu.classList.contains('visible');
                 closeAllMenus();
@@ -1313,9 +1312,6 @@
                 photoInput.click();
             });
 
-            // --- PRESET LOGIC ---
-            // ATTENZIONE: Google Drive impedisce di leggere le cartelle via web senza un'API Key per motivi di sicurezza.
-            // Inserisci qui la tua API Key di Google Cloud per attivare il Drive Dinamico.
             const GOOGLE_DRIVE_API_KEY = 'AIzaSyBJFeOfENIvfzunniWaWQ6sj9M-oH4CJAo'; 
             const DRIVE_FOLDER_ID = '1Go1jiEuLD4s7JU9RONFLorztdueHh1vs';
 
@@ -1327,7 +1323,6 @@
                     categorySelect.appendChild(o);
                 });
                 
-                // Aggiungiamo il listener solo la prima volta
                 if (!categorySelect.dataset.listenerAdded) {
                     categorySelect.addEventListener('change', (e) => populatePresets(e.target.value));
                     categorySelect.dataset.listenerAdded = "true";
@@ -1340,14 +1335,12 @@
 
             async function loadDynamicPresets() {
                 if (!GOOGLE_DRIVE_API_KEY) {
-                    // Sistema "salvavita": se manca l'API Key, usa le immagini di default per non rompere l'app
                     PRESETS = DEFAULT_PRESETS;
                     initPresetMenu();
                     return;
                 }
 
                 try {
-                    // 1. Chiede a Drive la lista delle cartelle all'interno del tuo link
                     const folderQuery = `'${DRIVE_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'`;
                     const folderUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(folderQuery)}&key=${GOOGLE_DRIVE_API_KEY}&fields=files(id,name)`;
                     const folderRes = await fetch(folderUrl);
@@ -1355,7 +1348,6 @@
                         const err = await folderRes.json();
                         console.error("Dettagli errore Drive:", err);
                         
-                        // Sostituiamo il "vietato" alert() del browser con il nostro Modal pulito
                         if (err.error && err.error.code === 403 && err.error.message.includes("has not been used in project")) {
                             document.getElementById('api-error-modal-overlay').classList.remove('hidden');
                         }
@@ -1366,7 +1358,6 @@
                     
                     let tempPresets = {};
                     
-                    // 2. Per ogni cartella, chiede a Drive la lista delle immagini (.png, .jpg) al suo interno
                     for (let folder of folderData.files) {
                         tempPresets[folder.name] = [];
                         const filesQuery = `'${folder.id}' in parents and mimeType contains 'image/'`;
@@ -1377,8 +1368,8 @@
                             const filesData = await filesRes.json();
                             filesData.files.forEach(file => {
                                 tempPresets[folder.name].push({
-                                    name: file.name.replace(/\.[^/.]+$/, ""), // Rimuove .jpg/.png dal nome mostrato
-                                    img: `https://drive.google.com/uc?id=${file.id}` // Link per sbloccare l'immagine tramite il proxy WSRV
+                                    name: file.name.replace(/\.[^/.]+$/, ""), 
+                                    img: `https://drive.google.com/uc?id=${file.id}` 
                                 });
                             });
                         }
@@ -1398,7 +1389,6 @@
                 }
             }
 
-            // Avvia il caricamento dinamico
             loadDynamicPresets();
 
             function populatePresets(cat) {
@@ -1412,7 +1402,6 @@
                     imgContainer.className = 'w-20 h-20 rounded-xl border-2 border-white/50 shadow-md group-hover:border-white transition-all transform group-hover:scale-105 overflow-hidden bg-white flex items-center justify-center';
                     
                     const i = document.createElement('img');
-                    // MODIFICA MINIMA: Usiamo il proxy anche per le miniature per sbloccarne la visualizzazione preventiva
                     i.src = 'https://wsrv.nl/?url=' + encodeURIComponent(p.img);
                     i.className = 'w-full h-full object-contain pointer-events-none';
                     i.onerror = () => { i.style.display='none'; imgContainer.textContent='X'; };
@@ -1438,13 +1427,10 @@
             function loadImgFromUrl(url) {
                 showLoader(translations[currentLang].loaderLoadingPreset, false);
                 
-                // Proxy 1: WSRV.nl (Specializzato per immagini, aggira i blocchi di Pinterest in modo infallibile)
                 const proxy1 = 'https://wsrv.nl/?url=' + encodeURIComponent(url);
-                // Proxy 2: AllOrigins (Fallback robusto)
                 const proxy2 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
 
                 const processBlob = (blob) => {
-                    // Legge il dato esattamente come fa il bottone "Upload Tattoo" per un comportamento 100% identico
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         hideLoader();
@@ -1479,7 +1465,6 @@
                     });
             }
 
-            // Stored HTML representations for tutorials that don't need full translations
             const tutHtmlMap = [
                 `<div class="w-full h-full bg-white rounded-xl border-2 border-gray-200 flex flex-col p-2 gap-2 justify-end relative overflow-hidden"><div class="absolute inset-0 bg-gray-100/50 flex items-center justify-center"><svg class="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div><div class="w-full py-1.5 bg-black rounded shadow-sm flex items-center justify-center z-10 scale-105"><span class="text-[8px] font-bold text-white uppercase tracking-wider">Body</span></div></div>`,
                 `<div class="w-full h-full bg-white rounded-xl border-2 border-gray-200 flex flex-col items-center justify-center p-2 gap-2 relative"><div class="text-[7px] font-bold text-gray-400 uppercase tracking-widest">Step 2: Silhouette Fit</div><div class="w-full flex items-center gap-1"><span class="text-[10px] text-gray-400 font-bold">-</span><div class="flex-1 h-1.5 bg-gray-200 rounded-full relative"><div class="absolute top-1/2 left-2/3 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white border border-gray-300 rounded-full shadow-sm"></div></div><span class="text-[10px] text-gray-400 font-bold">+</span></div><div class="w-3/4 h-3 bg-black rounded-full mt-1"></div></div>`,
@@ -1654,7 +1639,7 @@
                 if (!file) return;
 
                 btnUploadBody.classList.remove('pulsing-btn');
-                isBodyProcessed = false; // Reset per ogni nuovo upload
+                isBodyProcessed = false; 
 
                 const fileUrl = URL.createObjectURL(file);
                 photoImage.src = fileUrl;
@@ -1662,9 +1647,6 @@
                 photoImage.onload = async () => {
                     const { naturalWidth: w, naturalHeight: h } = photoImage;
                     
-                    // MODIFICA MINIMA: Upscale/Downscale intelligente e infallibile.
-                    // Garantisce una tela di sfondo (Canvas) sempre in Altissima Definizione (1440p-1920p).
-                    // Risolve alla radice il problema del tatuaggio "sgranato" se inserito in una foto piccola.
                     if (!isBodyProcessed) {
                         const MIN_DIM = 1440;
                         const MAX_DIM = 1920;
@@ -1685,13 +1667,13 @@
                             rCtx.drawImage(photoImage, 0, 0, newWidth, newHeight);
 
                             photoImage.src = resizeCanvas.toDataURL('image/jpeg', 0.95);
-                            return; // Attende il ricaricamento istantaneo con risoluzione HD perfetta
+                            return; 
                         } else {
                             isBodyProcessed = true;
                         }
                     }
 
-                    URL.revokeObjectURL(fileUrl); // Libera memoria
+                    URL.revokeObjectURL(fileUrl); 
                     
                     adjustContainerHeight();
                     setupCanvasAndImageProps();
@@ -1722,7 +1704,6 @@
                 e.target.value = null;
             });
 
-            // --- IMAGE PROCESSING LOGIC ---
             function processTattooFilter(imgSource, level) {
                 return new Promise((resolve) => {
                     const tempImg = new Image();
@@ -1744,7 +1725,7 @@
                             
                             const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
                             
-                            if (level === 1) { // Color Tattoo
+                            if (level === 1) { 
                                 const minChan = Math.min(r, g, b);
                                 const threshold = 230;
                                 
@@ -1757,10 +1738,9 @@
                                     data[i + 3] = alpha;
                                 }
                             } else {
-                                // Stencil Modes
                                 let gamma = 1.0;
-                                if (level === 0) { gamma = 1.0; } // Soft
-                                else if (level === 2) { gamma = 5.0; } // Bold
+                                if (level === 0) { gamma = 1.0; } 
+                                else if (level === 2) { gamma = 5.0; } 
 
                                 let normLum = luminance / 255;
                                 normLum = Math.pow(normLum, gamma);
@@ -1848,16 +1828,11 @@
                 currentBlackLevel = selectedOption.level;
 
                 tattooImage.onload = async () => {
-                      // MODIFICA MINIMA: GPU Cache per proteggere il tatuaggio dal bug "Mipmap Purging" su PC.
-                      // Convertiamo il tatuaggio base64 in un ImageBitmap residente fisso nella Scheda Video,
-                      // così Chrome non "butterà" mai via i suoi dettagli quando usi lo zoom!
                       if (tattooBitmap && tattooBitmap.close) {
                           tattooBitmap.close();
                       }
                       if (window.createImageBitmap) {
                           try {
-                              // Aggiunti i parametri di "blocco totale": impediscono al browser PC di alterare, 
-                              // comprimere o "ottimizzare" la trasparenza e i colori durante il caricamento nella GPU.
                               tattooBitmap = await createImageBitmap(tattooImage, { 
                                   premultiplyAlpha: 'none',
                                   colorSpaceConversion: 'none',
@@ -1878,7 +1853,6 @@
                       btnUploadTattoo.classList.remove('pulsing-btn');
                       Array.from(presetPaletteContainer.children).forEach(child => child.querySelector('div').classList.remove('pulsing-btn'));
                       
-                      // AGGIUNTA POPUP A2HS (Aggiungi alla Home): si attiva 1.5 secondi dopo aver caricato il tattoo per la primissima volta
                       if (!hasShownA2HSPopup) {
                           hasShownA2HSPopup = true;
                           setTimeout(() => {
@@ -1892,7 +1866,6 @@
                     } else tattooProps.scale = 1;
                     tattooProps.rotation = 0;
 
-                    // INIZIALIZZAZIONE SLIDER PC PER ZOOM (Dinamico basato sulla scala inziale del tattoo)
                     zoomSlider.min = (tattooProps.scale * 0.1).toFixed(4);
                     zoomSlider.max = (tattooProps.scale * 5.0).toFixed(4);
                     zoomSlider.value = tattooProps.scale;
@@ -1905,7 +1878,6 @@
                     glassMenu.classList.remove('visible');
                     menuToggleBtn.classList.remove('active');
 
-                    // Mostra controlli PC se presenti
                     updateDesktopControlsVisibility();
                 };
                 
@@ -1921,8 +1893,6 @@
                 closeImageOverlay();
                 tattooInput.value = ''; 
 
-                // MODIFICA MINIMA: Se il tatuaggio esiste già in memoria (caso: "Discard" annullato),
-                // torniamo tranquillamente alla modalità EDITOR senza bloccare la tendina.
                 if (tattooImage.src && tattooImage.naturalWidth > 0) {
                     setAppState('EDITOR');
                     isMenuForcedOpen = false;
@@ -1934,7 +1904,6 @@
                     draw();
                     updateDesktopControlsVisibility();
                 } else {
-                    // Comportamento originale: se non c'è ancora nessun tatuaggio, rimani bloccato allo STEP 2
                     setAppState('STEP2');
                     glassMenu.classList.add('visible');
                     isMenuForcedOpen = true;
@@ -1997,7 +1966,6 @@
 
                     setAppState('STEP2');
                     
-                    // MODIFICA MINIMA: Rende nuovamente visibile la barra dei bottoni in basso prima di caricare il tattoo
                     uiDockContainer.classList.add('visible-dock');
                 } else {
                     uiDockContainer.classList.add('visible-dock');
@@ -2088,7 +2056,6 @@
                 }
             }
 
-            // CACHE CANVASES FOR PERFORMANCE E PREVENIRE CALI DI QUALITÀ DURANTE LO ZOOM
             const tempRenderCanvas = document.createElement('canvas');
             const tempRenderCtx = tempRenderCanvas.getContext('2d');
             const blurRenderCanvas = document.createElement('canvas');
@@ -2096,8 +2063,6 @@
             const zoneRenderCanvas = document.createElement('canvas');
             const zoneRenderCtx = zoneRenderCanvas.getContext('2d');
 
-            // MODIFICA MINIMA: Sistema Anti-Panico per il rendering (RAF)
-            // Impedisce ai browser PC di tagliare la qualità per via dei troppi aggiornamenti dello slider
             let drawPending = false;
             function draw() {
                 if (!photoImage.src) return;
@@ -2112,7 +2077,6 @@
             function executeDraw() {
                 if (!photoImage.src) return;
 
-                // Sincronizza le dimensioni delle tele cache con quella principale solo se necessario
                 if (tempRenderCanvas.width !== canvas.width || tempRenderCanvas.height !== canvas.height) {
                     tempRenderCanvas.width = canvas.width; tempRenderCanvas.height = canvas.height;
                     blurRenderCanvas.width = canvas.width; blurRenderCanvas.height = canvas.height;
@@ -2123,7 +2087,6 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(photoImage, 0, 0, canvas.width, canvas.height);
                 
-                // MODIFICA: Calcolo del ratio per far coincidere la dimensione visiva del pennello con la tela HD
                 const rect = canvas.getBoundingClientRect();
                 const renderRatio = rect.width > 0 ? canvas.width / rect.width : 1;
 
@@ -2151,27 +2114,55 @@
                         const { x: tax, y: tay } = getTattooAbsolutePos();
                         const finalMask = getFinalMask();
                         
-                        // Render ottimizzato ad altissima qualità per il tatuaggio
                         tempRenderCtx.clearRect(0, 0, canvas.width, canvas.height);
                         tempRenderCtx.imageSmoothingEnabled = true; tempRenderCtx.imageSmoothingQuality = 'high';
                         tempRenderCtx.save(); 
                         
-                        // Ripristinate le coordinate precise (i Math.round forzavano una pixelizzazione innaturale dell'immagine)
                         tempRenderCtx.translate(tax, tay); 
                         tempRenderCtx.rotate(tattooProps.rotation);
                         
-                        // MODIFICA MINIMA: Usiamo la GPU Bitmap per prevenire il collasso della qualità su PC
                         const drawSource = tattooBitmap || tattooImage;
                         tempRenderCtx.drawImage(drawSource, -tw / 2, -th / 2, tw, th); 
                         tempRenderCtx.restore();
                         
-                        // Maschera ritaglio applicata direttamente: rimosso il "blur" in tempo reale che mandava in blocco il browser costringendolo ad abbassare drasticamente la risoluzione generale
                         tempRenderCtx.globalCompositeOperation = 'destination-in'; 
                         tempRenderCtx.drawImage(finalMask, 0, 0);
                         tempRenderCtx.globalCompositeOperation = 'source-over';
                         
                         ctx.save(); ctx.globalAlpha = tattooProps.opacity; ctx.drawImage(tempRenderCanvas, 0, 0); ctx.restore();
                     }
+                }
+
+                // --- AGGIUNTA EFFETTO LOUPE/ZOOM A FINE RENDER ---
+                if (isDefiningZones && isSegmentMenuLocked && brushCursorPos && loupeCanvas.classList.contains('active')) {
+                    const zoomLevel = 2; 
+                    const sourceSize = loupeCanvas.width / zoomLevel;
+                    
+                    loupeCtx.clearRect(0, 0, loupeCanvas.width, loupeCanvas.height);
+                    loupeCtx.fillStyle = '#fff';
+                    loupeCtx.fillRect(0, 0, loupeCanvas.width, loupeCanvas.height);
+                    
+                    const sx = brushCursorPos.x - (sourceSize / 2) * renderRatio;
+                    const sy = brushCursorPos.y - (sourceSize / 2) * renderRatio;
+                    const sWidth = sourceSize * renderRatio;
+                    
+                    loupeCtx.drawImage(canvas, sx, sy, sWidth, sWidth, 0, 0, loupeCanvas.width, loupeCanvas.height);
+                    
+                    const actualSizeInLoupe = brushSize * zoomLevel;
+                    loupeCtx.beginPath();
+                    loupeCtx.arc(loupeCanvas.width / 2, loupeCanvas.height / 2, actualSizeInLoupe / 2, 0, Math.PI * 2);
+                    loupeCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                    loupeCtx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                    loupeCtx.lineWidth = 2;
+                    loupeCtx.setLineDash([6, 6]);
+                    loupeCtx.fill();
+                    loupeCtx.stroke();
+                    loupeCtx.setLineDash([]);
+                    
+                    loupeCtx.beginPath();
+                    loupeCtx.arc(loupeCanvas.width / 2, loupeCanvas.height / 2, 3, 0, Math.PI * 2);
+                    loupeCtx.fillStyle = brushMode === 'add' ? 'rgba(0,0,0,0.5)' : 'rgba(255,0,0,0.5)';
+                    loupeCtx.fill();
                 }
             }
 
@@ -2181,12 +2172,12 @@
                 brushControls.classList.remove('hidden'); 
                 clearAreaBtn.classList.remove('hidden'); brushSizeControls.classList.remove('hidden');
                 closeAllMenus(); brushCursorPos = null; userMaskSnapshot = null;
+                loupeCanvas.classList.remove('active');
                 draw();
-                updateDesktopControlsVisibility(); // <--- AGGIUNTO QUI: Riporta i comandi PC alla chiusura del menu
+                updateDesktopControlsVisibility(); 
             }
 
             function applyBrush(startPos, endPos) {
-                // MODIFICA: Moltiplica la dimensione per il ratio della tela, così il tratto corrisponde all'anteprima visiva
                 const rect = canvas.getBoundingClientRect();
                 const renderRatio = rect.width > 0 ? canvas.width / rect.width : 1;
                 const actualBrushSize = brushSize * renderRatio;
@@ -2257,7 +2248,7 @@
                         brushControls.classList.remove('hidden'); 
                         clearAreaBtn.classList.remove('hidden'); brushSizeControls.classList.remove('hidden');
                         draw(); toggleMenu(segmentMenu, segmentFab);
-                        updateDesktopControlsVisibility(); // <--- AGGIUNTO QUI: Nasconde i comandi PC aprendo il menu
+                        updateDesktopControlsVisibility(); 
                     } else exitSegmentationMode();
                 });
                 
@@ -2271,7 +2262,6 @@
                 
                 document.getElementById('close-glass-menu-btn').addEventListener('click', closeAllMenus);
 
-                // MODIFICA MINIMA: Transizione trasparenza durante lo scorrimento dello slider sagoma
                 const startSlidingPanel = () => adjustStepPanel.classList.add('is-sliding');
                 const stopSlidingPanel = () => adjustStepPanel.classList.remove('is-sliding');
                 
@@ -2320,6 +2310,7 @@
                     
                     menuToggleBtn.classList.remove('hidden');
                     
+                    loupeCanvas.classList.remove('active');
                     draw();
                     updateDesktopControlsVisibility();
                 }
@@ -2358,11 +2349,31 @@
                     exitBrushEditMode();
                 });
 
+                function updateLoupePosition() {
+                    if (!lastClientPos) return;
+                    const loupeSize = 130; 
+                    const offset = 90; 
+                    let left = lastClientPos.x - loupeSize / 2;
+                    let top = lastClientPos.y - loupeSize - offset;
+
+                    if (top < 20) top = lastClientPos.y + offset / 2;
+                    if (left < 10) left = 10;
+                    if (left > window.innerWidth - loupeSize - 10) left = window.innerWidth - loupeSize - 10;
+
+                    loupeCanvas.style.left = `${left}px`;
+                    loupeCanvas.style.top = `${top}px`;
+                }
+
                 const getCanvasPos = (e) => {
                     const rect = canvas.getBoundingClientRect();
                     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                    return { x: Math.round((clientX - rect.left) * (canvas.width / rect.width)), y: Math.round((clientY - rect.top) * (canvas.height / rect.height)) };
+                    return { 
+                        x: Math.round((clientX - rect.left) * (canvas.width / rect.width)), 
+                        y: Math.round((clientY - rect.top) * (canvas.height / rect.height)),
+                        cx: clientX,
+                        cy: clientY
+                    };
                 };
                 
                 const onStart = (e) => {
@@ -2386,6 +2397,9 @@
                             brushCursorPos = pos;
                             isBrushing = true;
                             lastBrushPos = pos;
+                            lastClientPos = { x: pos.cx, y: pos.cy };
+                            updateLoupePosition();
+                            loupeCanvas.classList.add('active');
                             applyBrush(pos, pos); 
                             draw(); 
                         }
@@ -2401,6 +2415,7 @@
                         canvas.classList.add('grabbing');
                     }
                 };
+
                 const onMove = (e) => {
                     e.preventDefault();
                     
@@ -2414,7 +2429,6 @@
                         if (initialPinchDist > 0) {
                             const scaleFactor = currentDist / initialPinchDist;
                             tattooProps.scale = startScale * scaleFactor;
-                            // Sync slider if user is using touch controls on a PC/Laptop screen
                             if (!isMobile) zoomSlider.value = tattooProps.scale;
                         }
                         
@@ -2429,7 +2443,12 @@
                     if (isDefiningZones) { 
                         if (isSegmentMenuLocked) {
                             brushCursorPos = pos; 
-                            if (isBrushing) { applyBrush(lastBrushPos, pos); lastBrushPos = pos; } 
+                            if (isBrushing) { 
+                                lastClientPos = { x: pos.cx, y: pos.cy };
+                                updateLoupePosition();
+                                applyBrush(lastBrushPos, pos); 
+                                lastBrushPos = pos; 
+                            } 
                             draw(); 
                         }
                     } 
@@ -2441,16 +2460,28 @@
                         draw();
                     }
                 };
+
                 const onEnd = (e) => {
-                    if (isBrushing) isBrushing = false; 
+                    if (isBrushing) {
+                        isBrushing = false; 
+                        loupeCanvas.classList.remove('active');
+                    }
                     if (transformMode === 'move') canvas.classList.remove('grabbing'); 
                     transformMode = null;
                     if (e.touches && e.touches.length < 2) {
                         isGesture = false;
                     }
                 };
+
                 canvas.addEventListener('mousedown', onStart); canvas.addEventListener('mousemove', onMove); canvas.addEventListener('mouseup', onEnd);
-                canvas.addEventListener('mouseleave', (e) => { if (isBrushing) isBrushing = false; brushCursorPos = null; if (isDefiningZones) draw(); });
+                canvas.addEventListener('mouseleave', (e) => { 
+                    if (isBrushing) {
+                        isBrushing = false; 
+                        loupeCanvas.classList.remove('active');
+                    }
+                    brushCursorPos = null; 
+                    if (isDefiningZones) draw(); 
+                });
                 canvas.addEventListener('touchstart', onStart, { passive: false }); canvas.addEventListener('touchmove', onMove, { passive: false }); canvas.addEventListener('touchend', onEnd);
             }
 
@@ -2462,14 +2493,12 @@
                 if (!photoImage.src || !segmentationResult) return;
                 isExporting = true;
                 
-                // MODIFICA MINIMA: Prima dell'export, forziamo un fotogramma sincrono in qualità purissima (ignora le latenze del browser)
                 executeDraw(); 
                 
                 const exportCanvas = document.createElement('canvas'); 
                 exportCanvas.width = canvas.width; exportCanvas.height = canvas.height;
                 const exportCtx = exportCanvas.getContext('2d'); 
                 
-                // Garantiamo che il canvas di salvataggio attivi le modalità in alta risoluzione
                 exportCtx.imageSmoothingEnabled = true;
                 exportCtx.imageSmoothingQuality = 'high';
                 
@@ -2484,7 +2513,7 @@
             setupInteractionEvents();
             window.addEventListener('resize', () => { 
                 if (photoImage.src) adjustContainerHeight(); 
-                updateDesktopControlsVisibility(); // Controllo resize
+                updateDesktopControlsVisibility(); 
             });
         });
     </script>
