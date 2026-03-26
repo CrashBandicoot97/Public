@@ -423,12 +423,31 @@
             border-color: transparent !important;
             box-shadow: none !important;
         }
-        #adjust-step-text-wrap {
-            transition: opacity 0.2s ease-out;
+        
+        #adjust-step-text-wrap, #finish-adjust-btn {
+            transition: opacity 0.2s ease-out, transform 0.1s ease-out;
         }
-        #adjust-step-panel.is-sliding #adjust-step-text-wrap {
+        
+        #adjust-step-panel.is-sliding #adjust-step-text-wrap,
+        #adjust-step-panel.is-sliding #finish-adjust-btn {
             opacity: 0 !important;
             pointer-events: none;
+        }
+
+        /* MODIFICA: Ingrandimento pallino e traccia della barra scorrimento per lo Step 2 */
+        #area-adjust-slider::-webkit-slider-thumb {
+            height: 28px !important;
+            width: 28px !important;
+            margin-top: -10px !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+        }
+        #area-adjust-slider::-webkit-slider-runnable-track {
+            height: 8px !important;
+        }
+        #area-adjust-slider::-moz-range-thumb {
+            height: 28px !important;
+            width: 28px !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
         }
 
         @keyframes slideUp { from { transform: translate(-50%, 100px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
@@ -653,13 +672,14 @@
                         Fine-tune the edge of your body silhouette for a realistic fit.
                     </p>
                 </div>
-                <div class="flex items-center gap-3 w-full mt-1">
-                    <div class="slider-container flex-1 !w-auto">
-                        <span class="text-xs font-bold text-gray-400">-</span>
-                        <input type="range" id="area-adjust-slider" class="flex-1" min="-20" max="20" value="0">
-                        <span class="text-xs font-bold text-gray-400">+</span>
+                <div class="flex flex-col gap-4 w-full mt-3">
+                    <div class="slider-container w-full">
+                        <span class="text-sm font-bold text-gray-400">-</span>
+                        <input type="range" id="area-adjust-slider" class="flex-1 w-full cursor-pointer" min="-20" max="20" value="0">
+                        <span class="text-sm font-bold text-gray-400">+</span>
                     </div>
-                    <button id="finish-adjust-btn" class="ios-action-btn !w-auto !py-2 !px-4 !text-[11px] !rounded-xl shadow-sm shrink-0 !mt-0" data-i18n="btnConfirmProceed">Confirm & Proceed</button>
+                    <!-- MODIFICA: Bottone ristretto con !w-2/3 e centrato con mx-auto -->
+                    <button id="finish-adjust-btn" class="ios-action-btn !w-2/3 mx-auto !py-3 !text-[13px] !rounded-xl shadow-sm !mt-0" data-i18n="btnConfirmProceed">Confirm</button>
                 </div>
             </div>
 
@@ -801,7 +821,7 @@
                 tutClose: "Close Tutorial",
                 step2Title: "Step 2: Silhouette Fit",
                 step2Desc: "Fine-tune the edge of your body silhouette for a realistic fit.",
-                btnConfirmProceed: "Confirm & Proceed",
+                btnConfirmProceed: "Confirm",
                 panelSilhTitle: "Body Silhouette",
                 btnAdd: "Add",
                 btnErase: "Erase",
@@ -871,7 +891,7 @@
                 tutClose: "Chiudi Tutorial",
                 step2Title: "Step 2: Adattamento Sagoma",
                 step2Desc: "Perfeziona il bordo della sagoma del corpo per un adattamento realistico.",
-                btnConfirmProceed: "Conferma & Procedi",
+                btnConfirmProceed: "Conferma",
                 panelSilhTitle: "Sagoma Corpo",
                 btnAdd: "Aggiungi",
                 btnErase: "Cancella",
@@ -2102,10 +2122,17 @@
                 ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(photoImage, 0, 0, canvas.width, canvas.height);
+                
+                // MODIFICA: Calcolo del ratio per far coincidere la dimensione visiva del pennello con la tela HD
+                const rect = canvas.getBoundingClientRect();
+                const renderRatio = rect.width > 0 ? canvas.width / rect.width : 1;
+
                 const previewCircle = (pos, size) => {
-                    ctx.beginPath(); ctx.arc(pos.x, pos.y, size / 2, 0, Math.PI * 2);
+                    const actualSize = size * renderRatio;
+                    ctx.beginPath(); ctx.arc(pos.x, pos.y, actualSize / 2, 0, Math.PI * 2);
                     ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)'; ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-                    ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+                    ctx.lineWidth = 1.5 * renderRatio; 
+                    ctx.setLineDash([4 * renderRatio, 4 * renderRatio]); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
                 };
 
                 if (isDefiningZones || !adjustStepPanel.classList.contains('hidden')) {
@@ -2159,7 +2186,12 @@
             }
 
             function applyBrush(startPos, endPos) {
-                userMaskCtx.lineCap = 'round'; userMaskCtx.lineJoin = 'round'; userMaskCtx.lineWidth = brushSize;
+                // MODIFICA: Moltiplica la dimensione per il ratio della tela, così il tratto corrisponde all'anteprima visiva
+                const rect = canvas.getBoundingClientRect();
+                const renderRatio = rect.width > 0 ? canvas.width / rect.width : 1;
+                const actualBrushSize = brushSize * renderRatio;
+
+                userMaskCtx.lineCap = 'round'; userMaskCtx.lineJoin = 'round'; userMaskCtx.lineWidth = actualBrushSize;
                 userMaskCtx.globalCompositeOperation = brushMode === 'add' ? 'source-over' : 'destination-out';
                 userMaskCtx.strokeStyle = 'white';
                 userMaskCtx.beginPath(); userMaskCtx.moveTo(startPos.x, startPos.y); userMaskCtx.lineTo(endPos.x, endPos.y); userMaskCtx.stroke();
