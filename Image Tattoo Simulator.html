@@ -535,18 +535,18 @@
     <div class="app-container-wrapper">
         
         <div id="img-proc-overlay" class="inactive">
-            <div class="flex-1 flex flex-col p-4 gap-5 h-full w-full max-w-2xl mx-auto justify-center">
-                <div class="text-center py-2 relative z-10">
-                    <h2 class="font-bold text-gray-900 text-2xl tracking-tight" data-i18n="chooseStyleTitle">Choose Style</h2>
-                    <p class="text-xs text-gray-500 mt-1 font-medium" data-i18n="chooseStyleDesc">Select how the tattoo blends with the skin</p>
+            <div class="flex-1 flex flex-col p-3 gap-2 h-full w-full max-w-2xl mx-auto justify-center">
+                <div class="text-center py-1 relative z-10 shrink-0">
+                    <h2 class="font-bold text-gray-900 text-xl tracking-tight" data-i18n="chooseStyleTitle">Choose Style</h2>
+                    <p class="text-[10px] text-gray-500 mt-0.5 font-medium" data-i18n="chooseStyleDesc">Select how the tattoo blends with the skin</p>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-y-auto p-2 pb-8">
+                <div class="grid grid-cols-2 grid-rows-2 gap-2 flex-1 min-h-0 w-full overflow-hidden pb-1">
                     <!-- Card 1: Original -->
-                    <div id="card-option-original" class="clean-card option-card rounded-2xl p-2.5 flex flex-col items-center justify-center cursor-pointer group">
-                        <div class="w-full bg-white rounded-xl p-2 mb-2 shadow-sm border border-gray-100 flex flex-col items-start overflow-hidden">
-                            <span class="text-[11px] font-bold text-gray-800 uppercase tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optOrigTitle">Original Photo</span>
-                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap" data-i18n="optOrigDesc">No adjustments</span>
+                    <div id="card-option-original" class="clean-card option-card rounded-2xl p-1.5 flex flex-col items-center justify-center cursor-pointer group h-full w-full">
+                        <div class="w-full bg-white rounded-lg p-1 mb-1 shadow-sm border border-gray-100 flex flex-col items-start overflow-hidden shrink-0">
+                            <span class="text-[10px] font-bold text-gray-800 uppercase tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optOrigTitle">Original Photo</span>
+                            <span class="text-[8px] font-bold text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optOrigDesc">No adjustments</span>
                         </div>
                         <div class="w-full flex-1 flex items-center justify-center overflow-hidden rounded-xl">
                             <img id="preview-opt-original" class="max-w-full max-h-full object-contain" />
@@ -554,10 +554,10 @@
                     </div>
 
                     <!-- Card 2: Color -->
-                    <div id="card-option-mid" class="clean-card option-card rounded-2xl p-2.5 flex flex-col items-center justify-center cursor-pointer group">
-                        <div class="w-full bg-white rounded-xl p-2 mb-2 shadow-sm border border-gray-100 flex flex-col items-start overflow-hidden">
-                            <span class="text-[11px] font-bold text-gray-900 uppercase tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optColorTitle">Color Ink</span>
-                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap" data-i18n="optColorDesc">White background removed</span>
+                    <div id="card-option-mid" class="clean-card option-card rounded-2xl p-1.5 flex flex-col items-center justify-center cursor-pointer group h-full w-full">
+                        <div class="w-full bg-white rounded-lg p-1 mb-1 shadow-sm border border-gray-100 flex flex-col items-start overflow-hidden shrink-0">
+                            <span class="text-[10px] font-bold text-gray-900 uppercase tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optColorTitle">Color Ink</span>
+                            <span class="text-[8px] font-bold text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optColorDesc">White background removed</span>
                         </div>
                          <div class="w-full flex-1 flex items-center justify-center overflow-hidden rounded-xl">
                              <img id="preview-opt-mid" class="max-w-full max-h-full object-contain" />
@@ -565,10 +565,10 @@
                     </div>
 
                     <!-- Card 3: Soft -->
-                    <div id="card-option-soft" class="clean-card option-card rounded-2xl p-2.5 flex flex-col items-center justify-center cursor-pointer group">
-                         <div class="w-full bg-white rounded-xl p-2 mb-2 shadow-sm border border-gray-100 flex flex-col items-start overflow-hidden">
-                            <span class="text-[11px] font-bold text-gray-900 uppercase tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optFineTitle">Fine Line</span>
-                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap" data-i18n="optFineDesc">Converted to stencil</span>
+                    <div id="card-option-soft" class="clean-card option-card rounded-2xl p-1.5 flex flex-col items-center justify-center cursor-pointer group h-full w-full">
+                         <div class="w-full bg-white rounded-lg p-1 mb-1 shadow-sm border border-gray-100 flex flex-col items-start overflow-hidden shrink-0">
+                            <span class="text-[10px] font-bold text-gray-900 uppercase tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optFineTitle">Fine Line</span>
+                            <span class="text-[8px] font-bold text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optFineDesc">Converted to stencil</span>
                         </div>
                         <div class="w-full flex-1 flex items-center justify-center overflow-hidden rounded-xl">
                              <img id="preview-opt-soft" class="max-w-full max-h-full object-contain" />
@@ -576,10 +576,10 @@
                     </div>
 
                     <!-- Card 4: Bold -->
-                    <div id="card-option-bold" class="clean-card option-card rounded-2xl p-2.5 flex flex-col items-center justify-center cursor-pointer group">
-                        <div class="w-full bg-white rounded-xl p-2 mb-2 shadow-sm border border-gray-100 flex flex-col items-start overflow-hidden">
-                            <span class="text-[11px] font-bold text-gray-900 uppercase tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optBoldTitle">Bold Line</span>
-                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap" data-i18n="optBoldDesc">Converted to stencil</span>
+                    <div id="card-option-bold" class="clean-card option-card rounded-2xl p-1.5 flex flex-col items-center justify-center cursor-pointer group h-full w-full">
+                        <div class="w-full bg-white rounded-lg p-1 mb-1 shadow-sm border border-gray-100 flex flex-col items-start overflow-hidden shrink-0">
+                            <span class="text-[10px] font-bold text-gray-900 uppercase tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optBoldTitle">Bold Line</span>
+                            <span class="text-[8px] font-bold text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis w-full" data-i18n="optBoldDesc">Converted to stencil</span>
                         </div>
                          <div class="w-full flex-1 flex items-center justify-center overflow-hidden rounded-xl">
                              <img id="preview-opt-bold" class="max-w-full max-h-full object-contain" />
@@ -587,9 +587,9 @@
                     </div>
                 </div>
                 
-                <div class="flex gap-3 mt-4 shrink-0 pb-4 relative z-20">
-                    <button id="btn-cancel-overlay" class="flex-1 py-3.5 rounded-xl font-bold text-gray-600 clean-btn shadow-sm text-sm tracking-wide" data-i18n="btnCancel">CANCEL</button>
-                    <button id="btn-confirm-overlay" disabled class="flex-[2] py-3.5 rounded-xl font-bold text-white clean-btn-primary shadow-md active:scale-95 transition-all text-sm tracking-wide" data-i18n="btnConfirm">CONFIRM</button>
+                <div class="flex gap-2 shrink-0 pb-2 relative z-20">
+                    <button id="btn-cancel-overlay" class="flex-1 py-3 rounded-xl font-bold text-gray-600 clean-btn shadow-sm text-sm tracking-wide" data-i18n="btnCancel">CANCEL</button>
+                    <button id="btn-confirm-overlay" disabled class="flex-[2] py-3 rounded-xl font-bold text-white clean-btn-primary shadow-md active:scale-95 transition-all text-sm tracking-wide" data-i18n="btnConfirm">CONFIRM</button>
                 </div>
             </div>
         </div>
