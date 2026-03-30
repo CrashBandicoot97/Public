@@ -581,15 +581,14 @@
             </div>
         </div>
 
-        <!-- Nuovo Modal di Errore API Google Drive (No alert) -->
+        <!-- Nuovo Modal di Errore Generico -->
         <div id="api-error-modal-overlay" class="hidden">
             <div class="modal-card">
-                <h3 class="modal-title mb-2">Azione Richiesta (Google Cloud)</h3>
+                <h3 class="modal-title mb-2">Servizio non disponibile</h3>
                 <p class="modal-text mb-6">
-                    ⚠️ La tua API Key è corretta, ma devi <b>abilitare l'API di Google Drive</b> nel tuo progetto Google Cloud per usare le tue cartelle.<br><br>
-                    Copia e apri il link mostrato nella console del browser per abilitarla. Fino ad allora l'app userà i preset di emergenza.
+                    Ci scusiamo per il disagio. L'app è temporaneamente non disponibile. Riprova più tardi. (1)
                 </p>
-                <button id="api-error-close-btn" class="ios-action-btn w-full">Ho capito</button>
+                <button id="api-error-close-btn" class="ios-action-btn w-full">Chiudi</button>
             </div>
         </div>
 
@@ -849,15 +848,15 @@
                 tutNext: "Next",
                 tutBack: "Back",
                 loaderLoadingPreset: "Loading Preset...",
-                loaderAnalysisFailed: "Analysis failed.<br>Try again.",
+                loaderAnalysisFailed: "Service temporarily unavailable.<br>Please try again. (2)",
                 loaderProcessing: "Processing silhouette...",
                 loaderCompleted: "Completed!",
                 loaderModel: "Loading AI model...",
-                loaderModelError: "AI model error.",
+                loaderModelError: "Service temporarily unavailable. (3)",
                 loaderAnalyzingShape: "Analyzing body shape...",
-                loaderAnalysisError: "Analysis error.",
+                loaderAnalysisError: "Service temporarily unavailable. (4)",
                 loaderApplying: "Applying style...",
-                loaderErrorLoadingImg: "Error loading image",
+                loaderErrorLoadingImg: "Service temporarily unavailable. (5)",
                 lblZoom: "ZOOM",
                 lblRotate: "ROTATE",
                 modePreset: "Mode: Presets 🔄",
@@ -919,15 +918,15 @@
                 tutNext: "Avanti",
                 tutBack: "Indietro",
                 loaderLoadingPreset: "Caricamento Preset...",
-                loaderAnalysisFailed: "Analisi fallita.<br>Riprova.",
+                loaderAnalysisFailed: "Servizio temporaneamente non disponibile.<br>Riprova. (2)",
                 loaderProcessing: "Elaborazione sagoma...",
                 loaderCompleted: "Completato!",
                 loaderModel: "Caricamento modello IA...",
-                loaderModelError: "Errore modello IA.",
+                loaderModelError: "Servizio temporaneamente non disponibile. (3)",
                 loaderAnalyzingShape: "Analisi della forma del corpo...",
-                loaderAnalysisError: "Errore di analisi.",
+                loaderAnalysisError: "Servizio temporaneamente non disponibile. (4)",
                 loaderApplying: "Applicazione stile...",
-                loaderErrorLoadingImg: "Errore nel caricamento dell'immagine",
+                loaderErrorLoadingImg: "Servizio temporaneamente non disponibile. (5)",
                 lblZoom: "ZOOM",
                 lblRotate: "RUOTA",
                 modePreset: "Modalità: Preset 🔄",
@@ -945,32 +944,6 @@
                     { title: "7. Salva Risultato", desc: "Una volta posizionato perfettamente il tatuaggio, tocca l'icona di download per salvare l'immagine finale nella tua galleria." }
                 ]
             }
-        };
-
-        const DEFAULT_PRESETS = {
-            'Traditional': [
-                {name:'Eagle', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
-                {name:'Snake', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
-                {name:'Rose', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'}
-            ],
-            'Japanese': [
-                {name:'Dragon', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
-                {name:'Koi', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
-                {name:'Oni', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
-                {name:'Geisha', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
-                {name:'Samurai', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
-                {name:'Hannya', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
-                {name:'Tiger', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
-                {name:'Cherry Blossom', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
-                {name:'Lotus', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
-                {name:'Foo Dog', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
-                {name:'Crane', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
-                {name:'Kabuki', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'}
-            ],
-            'Realism': [
-                {name:'Lion', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'},
-                {name:'Wolf', img:'https://i.pinimg.com/736x/e8/cb/2f/e8cb2f9a7dba915937121c6d72571857.jpg'}
-            ]
         };
 
         let PRESETS = {};
@@ -1329,7 +1302,7 @@
 
             async function loadDynamicPresets() {
                 if (!GOOGLE_DRIVE_API_KEY) {
-                    PRESETS = DEFAULT_PRESETS;
+                    PRESETS = {};
                     initPresetMenu();
                     return;
                 }
@@ -1372,13 +1345,13 @@
                     if (Object.keys(tempPresets).length > 0) {
                         PRESETS = tempPresets;
                     } else {
-                        PRESETS = DEFAULT_PRESETS;
+                        PRESETS = {};
                     }
                     initPresetMenu();
 
                 } catch (e) {
-                    console.error("Lettura Drive fallita, attivazione Salvavita:", e);
-                    PRESETS = DEFAULT_PRESETS;
+                    console.error("Lettura Drive fallita, nessun preset caricato:", e);
+                    PRESETS = {};
                     initPresetMenu();
                 }
             }
