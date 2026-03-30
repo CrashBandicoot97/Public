@@ -259,18 +259,18 @@
 
         .floating-panel { 
             position: fixed; bottom: 90px; 
-            left: 50%; margin: 0; 
-            width: 320px; 
+            left: 0; right: 0; margin: 0 auto; 
+            width: 92%; max-width: 320px; 
             background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); 
             -webkit-backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-border); 
             border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
             opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1), scale 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
             display: flex; flex-direction: column; gap: 15px; z-index: 99; 
-            transform: translate(-50%, 0) scale(0.95);
+            transform: translateY(20px) scale(0.95);
             transform-origin: bottom center;
         }
-        .floating-panel.visible { opacity: 1; transform: translate(-50%, 0) scale(1); pointer-events: auto; }
-        .floating-panel.temp-hidden { opacity: 0 !important; pointer-events: none !important; transform: translate(-50%, 0) scale(0.9) !important; }
+        .floating-panel.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+        .floating-panel.temp-hidden { opacity: 0 !important; pointer-events: none !important; transform: translateY(0) scale(0.9) !important; }
 
         .panel-header { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-sec); text-align: center; margin-bottom: 5px; font-weight: 700; }
         .ios-btn-group { display: flex; background: rgba(0,0,0,0.05); border-radius: 14px; padding: 3px; gap: 2px; }
@@ -406,13 +406,12 @@
         
         #adjust-step-panel { 
             position: fixed; bottom: 30px; 
-            left: 50%; margin: 0; 
+            left: 0; right: 0; margin: 0 auto; 
             width: 92%; max-width: 380px; 
             background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); -webkit-backdrop-filter: blur(16px) saturate(180%); 
             border: 1px solid var(--glass-border); border-radius: 24px; padding: 12px 18px; 
             box-shadow: 0 8px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 8px; z-index: 150; 
-            transform: translate(-50%, 0);
-            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
             transform-origin: bottom center;
             transition: scale 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, backdrop-filter 0.2s ease;
         }
@@ -451,8 +450,8 @@
         }
 
         @keyframes slideUp { 
-            from { transform: translate(-50%, 100px); opacity: 0; } 
-            to { transform: translate(-50%, 0); opacity: 1; } 
+            from { transform: translateY(100px); opacity: 0; } 
+            to { transform: translateY(0); opacity: 1; } 
         }
 
         @media (max-height: 750px) {
