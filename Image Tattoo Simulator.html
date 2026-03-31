@@ -2072,8 +2072,6 @@
                     zoneRenderCtx.fillRect(0, 0, canvas.width, canvas.height);
                     zoneRenderCtx.globalCompositeOperation = 'source-over';
                     ctx.drawImage(zoneRenderCanvas, 0, 0);
-                    
-                    if (brushCursorPos && isDefiningZones && isSegmentMenuLocked) previewCircle(brushCursorPos, brushSize);
                 } else if (tattooImage.src && segmentationResult) {
                     const { width: tw, height: th } = calculateTattooDimensions();
                     if (tw > 0) {
@@ -2134,6 +2132,10 @@
                     loupeCtx.arc(loupeCanvas.width / 2, loupeCanvas.height / 2, 3, 0, Math.PI * 2);
                     loupeCtx.fillStyle = brushMode === 'add' ? 'rgba(0,0,0,0.5)' : 'rgba(255,0,0,0.5)';
                     loupeCtx.fill();
+                }
+
+                if (brushCursorPos && isDefiningZones && isSegmentMenuLocked) {
+                    previewCircle(brushCursorPos, brushSize);
                 }
             }
 
