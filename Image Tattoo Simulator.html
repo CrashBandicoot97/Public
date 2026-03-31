@@ -315,9 +315,11 @@
         .floating-panel.temp-hidden { opacity: 0 !important; pointer-events: none !important; transform: translateY(0) scale(0.9) !important; }
 
         .panel-header { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-sec); text-align: center; margin-bottom: 5px; font-weight: 700; }
-        .ios-btn-group { display: flex; background: rgba(0,0,0,0.05); border-radius: 14px; padding: 3px; gap: 2px; }
-        .ios-btn { flex: 1; padding: 10px; border-radius: 11px; border: none; background: transparent; color: var(--text-sec); font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        .ios-btn.active { background: white; color: var(--accent-color); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .ios-btn-group { display: flex; gap: 12px; width: 100%; }
+        .ios-btn { flex: 1; padding: 12px; border-radius: 14px; border: 2px solid rgba(0,0,0,0.08); background: white; color: var(--text-sec); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+        .ios-btn:hover { background: #f9fafb; border-color: rgba(0,0,0,0.15); }
+        .ios-btn.active { background: var(--accent-color); border-color: var(--accent-color); color: white; box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+        .ios-btn:active { transform: scale(0.96); }
 
         .ios-action-btn { width: 100%; padding: 14px; border-radius: 16px; background: var(--accent-color); color: white; border: none; font-weight: 600; font-size: 15px; cursor: pointer; transition: opacity 0.2s, transform 0.1s; 
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
@@ -2306,8 +2308,16 @@
                     draw(); 
                 });
                 clearAreaBtn.addEventListener('click', () => {
+                    userMaskSnapshot = document.createElement('canvas'); userMaskSnapshot.width = userMaskCanvas.width; userMaskSnapshot.height = userMaskCanvas.height;
+                    userMaskSnapshot.getContext('2d').drawImage(userMaskCanvas, 0, 0);
+
                     userMaskCtx.globalCompositeOperation = 'source-over'; userMaskCtx.clearRect(0, 0, canvas.width, canvas.height);
-                    userMaskCtx.drawImage(bodyMaskCanvas, 0, 0); areaAdjustSlider.value = 0; draw();
+                    userMaskCtx.drawImage(bodyMaskCanvas, 0, 0); areaAdjustSlider.value = 0; 
+                    
+                    enterBrushEditMode();
+                    isSegmentMenuLocked = true;
+                    canvas.style.cursor = 'default';
+                    draw();
                 });
                 
                 dockConfirmBtn.addEventListener('click', () => {
