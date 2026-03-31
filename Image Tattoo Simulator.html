@@ -387,9 +387,9 @@
         #brush-controls, #confirmation-controls, #brush-size-controls { width: 100%; display: flex; flex-direction: column; gap: 10px; }
         
         #adjust-step-panel { 
-            max-width: 380px; 
-            padding: 12px 18px; 
-            gap: 8px; 
+            max-width: 320px; 
+            padding: 20px; 
+            gap: 15px; 
             z-index: 150; 
             animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
             transition: scale 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, backdrop-filter 0.2s ease;
@@ -668,19 +668,19 @@
             </div>
 
             <div id="adjust-step-panel" class="hidden">
-                <div id="adjust-step-text-wrap" class="flex flex-col text-left w-full">
-                    <div class="panel-header !m-0 !text-left" data-i18n="step2Title">Step 2: Silhouette Fit</div>
-                    <p class="text-desc-sm mt-0.5" data-i18n="step2Desc">
+                <div id="adjust-step-text-wrap" class="flex flex-col text-center w-full">
+                    <div class="panel-header" data-i18n="step2Title">Step 2: Silhouette Fit</div>
+                    <p class="text-body-sm mt-1" data-i18n="step2Desc">
                         Fine-tune the edge of your body silhouette for a realistic fit.
                     </p>
                 </div>
-                <div class="flex flex-col gap-4 w-full mt-3">
+                <div class="flex flex-col gap-4 w-full mt-1">
                     <div class="slider-container w-full">
                         <span class="text-body-md font-bold text-gray-400">-</span>
                         <input type="range" id="area-adjust-slider" class="flex-1 w-full cursor-pointer" min="-20" max="20" value="0">
                         <span class="text-body-md font-bold text-gray-400">+</span>
                     </div>
-                    <button id="finish-adjust-btn" class="ios-action-btn !w-2/3 mx-auto !py-3 !text-[13px] !rounded-xl shadow-sm !mt-0" data-i18n="btnConfirmProceed">Confirm</button>
+                    <button id="finish-adjust-btn" class="ios-action-btn" data-i18n="btnConfirmProceed">Confirm</button>
                 </div>
             </div>
 
@@ -2470,7 +2470,14 @@
             }
             
             downloadBtn.addEventListener('click', exportImage);
-            window.addEventListener('load', initializeModel);
+            window.addEventListener('load', () => {
+                initializeModel();
+                // Fix: Forza un ricalcolo delle dimensioni dopo il caricamento
+                // per risolvere il bug di zoom massivo su mobile durante il refresh della pagina
+                setTimeout(() => {
+                    window.dispatchEvent(new Event('resize'));
+                }, 250);
+            });
             setupInteractionEvents();
             window.addEventListener('resize', () => { 
                 if (photoImage.src) adjustContainerHeight(); 
