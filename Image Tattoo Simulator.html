@@ -330,9 +330,9 @@
         .ios-action-btn.small { font-size: 12px; padding: 8px; }
 
         .slider-container { width: 100%; display: flex; align-items: center; gap: 10px; }
-        input[type="range"] { -webkit-appearance: none; width: 100%; height: 24px; background: transparent; cursor: pointer; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 40px; background: transparent; cursor: pointer; touch-action: pan-y; }
         input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 6px; background: rgba(0,0,0,0.1); border-radius: 3px; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: white; margin-top: -7px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 1px solid rgba(0,0,0,0.1); transition: transform 0.1s; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 28px; width: 28px; border-radius: 50%; background: white; margin-top: -11px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); border: 1px solid rgba(0,0,0,0.1); transition: transform 0.1s; }
         
         #zoom-slider::-webkit-slider-thumb { 
             -webkit-appearance: none; 
@@ -414,18 +414,18 @@
         }
 
         #area-adjust-slider::-webkit-slider-thumb {
-            height: 28px !important;
-            width: 28px !important;
-            margin-top: -10px !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+            height: 34px !important;
+            width: 34px !important;
+            margin-top: -13px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
         }
         #area-adjust-slider::-webkit-slider-runnable-track {
             height: 8px !important;
         }
         #area-adjust-slider::-moz-range-thumb {
-            height: 28px !important;
-            width: 28px !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+            height: 34px !important;
+            width: 34px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
         }
 
         @keyframes slideUp { 
