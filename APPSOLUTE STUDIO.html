@@ -58,6 +58,11 @@
 
         /* --- STILI HUB PAGE --- */
         body.hub-ready { overflow-y: auto; height: auto; min-height: 100dvh; background-color: #fcfcfc; }
+        
+        /* --- STILI APP DASHBOARD --- */
+        body.app-active { overflow: hidden !important; height: 100dvh !important; background-color: #f3f4f6 !important; }
+        body.app-active #hub-container { display: none !important; }
+        body.app-active #appContainer { display: flex !important; }
 
         #hub-container {
             display: none;
@@ -154,7 +159,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            /* Supporto per lo scroll touch fluido */
             -webkit-overflow-scrolling: touch;
         }
         #lightbox-img {
@@ -164,38 +168,102 @@
             cursor: zoom-in;
             transition: width 0.3s ease, height 0.3s ease;
         }
+
+        /* Auth specific styles */
+        .spinner {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 2px solid #ffffff;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
 <body>
 
     <!-- --- LANDING PAGE (Inchiostro) --- -->
     <div id="landing-container">
+        <!-- SELETTORE LINGUA (Integrato Landing) -->
+        <div class="absolute top-6 right-6 z-20">
+            <div class="relative inline-block text-left">
+                <button onclick="toggleLangDropdown(event)" class="flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-black transition-colors bg-transparent border-none p-0 outline-none">
+                    <span class="current-lang-emoji text-sm md:text-base leading-none block">🇮🇹</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div class="lang-dropdown absolute top-full right-0 mt-3 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden hidden flex-col min-w-[140px] origin-top-right transition-all">
+                    <button onclick="setLanguage('it')" class="lang-it-btn px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm text-left font-black w-full border-b border-gray-100 transition-colors text-black">
+                        <span class="text-xl">🇮🇹</span> Italiano
+                    </button>
+                    <button onclick="setLanguage('en')" class="lang-en-btn px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm text-left font-black w-full transition-colors text-gray-500 hover:text-black">
+                        <span class="text-xl">🇬🇧</span> English
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <canvas id="landing-canvas"></canvas>
         <div id="landing-content" class="hidden-start">
             <h1 class="text-5xl md:text-8xl font-black mb-8 tracking-tighter text-center text-black">APPSOLUTE STUDIO&trade;</h1>
-            <button id="enter-btn">Entra nello Studio</button>
+            <button id="enter-btn" data-i18n="enter-btn">Entra nello Studio</button>
         </div>
     </div>
 
     <!-- --- HUB PAGE --- -->
     <div id="hub-container">
         
-        <!-- SUPER CARD INTEGRATA (Esempio + Pagamento) -->
+        <!-- TESTATA HUB CON SELETTORE LINGUA INTEGRATO -->
+        <div class="w-full max-w-[1050px] flex items-center justify-between mb-6 md:mb-8 px-2 md:px-0">
+            <div class="flex items-center gap-2 text-black font-black text-xl md:text-2xl tracking-tighter">
+                <svg class="w-6 h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+                APPSOLUTE STUDIO&trade;
+            </div>
+            
+            <div class="relative inline-block text-left z-50 flex items-center">
+                <button onclick="toggleLangDropdown(event)" class="flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-black transition-colors bg-transparent border-none p-0 outline-none">
+                    <span class="current-lang-emoji text-sm md:text-base leading-none block">🇮🇹</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div class="lang-dropdown absolute top-full right-0 mt-3 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden hidden flex-col min-w-[140px] origin-top-right transition-all">
+                    <button onclick="setLanguage('it')" class="lang-it-btn px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm text-left font-black w-full border-b border-gray-100 transition-colors text-black">
+                        <span class="text-xl">🇮🇹</span> Italiano
+                    </button>
+                    <button onclick="setLanguage('en')" class="lang-en-btn px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm text-left font-black w-full transition-colors text-gray-500 hover:text-black">
+                        <span class="text-xl">🇬🇧</span> English
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUPER CARD INTEGRATA (Esempio + Autenticazione) -->
         <div class="super-card">
             
             <!-- SEZIONE SINISTRA: L'ESEMPIO -->
             <div class="flex-1 p-6 md:p-10 flex flex-col justify-between">
                 <div>
-                    <h4 class="text-2xl md:text-4xl font-black leading-tight mb-2 md:mb-3 tracking-tighter">
+                    <h4 class="text-2xl md:text-4xl font-black leading-tight mb-2 md:mb-3 tracking-tighter" data-i18n="hub-title-1">
                         Sei un tatuatore?
                     </h4>
                     
-                    <p class="text-sm md:text-lg text-gray-500 font-medium mb-2 leading-relaxed">
+                    <p class="text-sm md:text-lg text-gray-500 font-medium mb-2 leading-relaxed" data-i18n="hub-desc-1">
                         Ecco un esempio della piattaforma di un tatuatore come te che ha sottoscritto l’abbonamento.
                     </p>
 
                     <div class="social-info-box">
-                        <p class="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3 md:mb-4">
+                        <p class="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3 md:mb-4" data-i18n="hub-social-text">
                             Il link della propria piattaforma può essere poi pubblicato nei propri canali ufficiali:
                         </p>
                         <div class="flex items-center justify-around">
@@ -217,66 +285,106 @@
 
                 <button onclick="openDemoModal(event)" class="w-full px-4 py-3 md:px-6 md:py-4 bg-black text-white rounded-full text-xs md:text-sm font-black shadow-md hover:bg-gray-900 transition-all uppercase tracking-tighter mt-2 md:mt-4 flex items-center justify-center gap-2 md:gap-3">
                     <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                    Esplora Piattaforma Esempio
+                    <span data-i18n="explore-btn">Esplora Piattaforma Esempio</span>
                 </button>
             </div>
 
             <!-- DIVISORE VERTICALE SU DESKTOP / ORIZZONTALE SU MOBILE -->
             <div class="w-full lg:w-px h-px lg:h-auto bg-gray-200"></div>
 
-            <!-- SEZIONE DESTRA: IL PAGAMENTO STRIPE -->
-            <div class="flex-1 p-6 md:p-10 bg-gray-50 flex flex-col justify-between">
-                <div>
-                    <div class="mb-4 md:mb-6">
-                        <span class="text-[9px] md:text-[10px] font-black px-4 py-1.5 bg-green-100 text-green-700 border border-green-200 rounded-full tracking-[0.2em] uppercase inline-block">
-                            Offerta Speciale
+            <!-- SEZIONE DESTRA: ISCRIZIONE E ACCESSO -->
+            <div class="flex-1 p-6 md:p-10 bg-gray-50 flex flex-col justify-center relative">
+                
+                <div id="messageBox" class="hidden absolute top-4 left-4 right-4 p-3 rounded-lg text-xs md:text-sm font-medium text-center z-10 shadow-md"></div>
+
+                <!-- FORM REGISTRAZIONE -->
+                <form id="registerForm" class="w-full max-w-sm mx-auto flex flex-col gap-3 md:gap-4">
+                    <div class="mb-2 text-center md:text-left">
+                        <span class="text-[9px] md:text-[10px] font-black px-4 py-1.5 bg-green-100 text-green-700 border border-green-200 rounded-full tracking-[0.2em] uppercase inline-block mb-3 md:mb-4" data-i18n="badge-free">
+                            3 Giorni Gratis
                         </span>
-                    </div>
-                    
-                    <h4 class="text-2xl md:text-4xl font-black leading-tight mb-2 tracking-tighter">
-                        Attiva il tuo Studio Virtuale
-                    </h4>
-                    
-                    <!-- Blocco Prezzo Scontato -->
-                    <div class="flex items-end justify-start gap-3 md:gap-4 my-3 md:my-5">
-                        <span class="text-xl md:text-2xl text-gray-400 line-through font-bold mb-1">23,00€</span>
-                        <span class="text-5xl md:text-7xl font-black text-black tracking-tighter leading-none">9,90€</span>
-                    </div>
-
-                    <p class="text-xs md:text-base text-gray-500 font-medium mb-4 md:mb-6 leading-relaxed">
-                        Entro 24 ore dal completamento del pagamento, riceverai un'email contenente tutti i link per l'attivazione e la gestione della tua piattaforma personalizzata, pronta per essere condivisa con i tuoi clienti.
-                    </p>
-                </div>
-
-                <div>
-                    <!-- SOSTITUIRE '#' CON IL LINK STRIPE REALE -->
-                    <a href="#" target="_blank" class="w-full px-6 py-3 md:px-8 md:py-4 bg-black text-white rounded-full text-sm md:text-base font-black shadow-xl hover:bg-gray-900 transition-all uppercase tracking-tighter flex items-center justify-center gap-2 md:gap-3 no-underline">
-                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
-                        Procedi al Pagamento
-                    </a>
-                    
-                    <!-- Loghi Pagamento & Sicurezza -->
-                    <div class="mt-4 md:mt-6 flex flex-col items-center w-full">
-                        <p class="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 md:mb-3">
-                            Pagamento 100% Sicuro e Criptato
+                        <h4 class="text-2xl md:text-3xl font-black leading-tight mb-2 tracking-tighter" data-i18n="hub-title-2">
+                            Inizia la Prova
+                        </h4>
+                        <p class="text-[11px] md:text-xs text-gray-500 font-medium leading-relaxed">
+                            <span data-i18n="hub-desc-2-1">Nessun metodo di pagamento richiesto ora. Successivamente deciderai se pagare </span><strong class="text-black">9,90€/mese</strong><span data-i18n="hub-desc-2-2">. Il link di pagamento ti verrà inviato via mail entro 24 ore dall'iscrizione.</span>
                         </p>
-                        <div class="flex items-center justify-center gap-4 text-gray-400">
-                            <!-- Stripe Logo -->
-                            <span class="font-black text-xl tracking-tighter text-[#635BFF]">stripe</span>
-                            <div class="h-5 w-px bg-gray-300"></div>
-                            <!-- Credit Card Icon -->
-                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                            <!-- Apple Pay Icon -->
-                            <span class="font-bold text-xs tracking-tight flex items-center gap-1">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 384 512"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg> Pay
-                            </span>
-                            <!-- Google Pay Icon -->
-                            <span class="font-bold text-xs tracking-tight flex items-center gap-1">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 488 512"><path d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"/></svg> Pay
-                            </span>
-                        </div>
                     </div>
-                </div>
+                    
+                    <div>
+                        <input type="email" id="regEmail" placeholder="Email" data-i18n-placeholder="ph-email" required class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all text-sm bg-white">
+                    </div>
+                    <div>
+                        <input type="password" id="regPassword" placeholder="Password" data-i18n-placeholder="ph-pass" required minlength="6" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all text-sm bg-white">
+                    </div>
+                    <div>
+                        <input type="password" id="regConfirm" placeholder="Conferma Password" data-i18n-placeholder="ph-conf" required minlength="6" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all text-sm bg-white">
+                    </div>
+
+                    <button type="submit" class="w-full px-4 py-3.5 md:py-4 mt-2 bg-black text-white rounded-full text-[10px] md:text-xs font-black shadow-xl hover:bg-gray-900 transition-all uppercase tracking-tighter flex items-center justify-center gap-2 text-center leading-tight">
+                        <span class="btnText" data-i18n="reg-btn">Iscriviti ora e inizia i 3 giorni di prova senza nessun pagamento</span><div class="spinner hidden"></div>
+                    </button>
+                    
+                    <div class="text-center text-[11px] md:text-xs text-gray-500 mt-2">
+                        <span data-i18n="reg-q">Hai già un account?</span> <a href="#" onclick="switchAuthView('login'); return false;" class="text-black font-black hover:underline uppercase tracking-tight" data-i18n="reg-a">Accedi</a>
+                    </div>
+                </form>
+
+                <!-- FORM LOGIN -->
+                <form id="loginForm" class="w-full max-w-sm mx-auto flex flex-col gap-4 hidden">
+                    <div class="mb-4 text-center md:text-left">
+                        <h4 class="text-2xl md:text-3xl font-black leading-tight mb-2 tracking-tighter" data-i18n="log-title">
+                            Bentornato
+                        </h4>
+                        <p class="text-sm text-gray-500 font-medium leading-relaxed" data-i18n="log-desc">
+                            Accedi al tuo Studio Virtuale.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <input type="email" id="loginEmail" placeholder="Email" data-i18n-placeholder="ph-email" required class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all text-sm bg-white">
+                    </div>
+                    <div>
+                        <input type="password" id="loginPassword" placeholder="Password" data-i18n-placeholder="ph-pass" required class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all text-sm bg-white">
+                    </div>
+
+                    <div class="text-right mt-[-8px]">
+                        <a href="#" onclick="switchAuthView('reset'); return false;" class="text-[10px] text-gray-500 hover:text-black hover:underline uppercase font-bold tracking-tight" data-i18n="log-forgot">Password dimenticata?</a>
+                    </div>
+
+                    <button type="submit" class="w-full px-6 py-4 mt-2 bg-black text-white rounded-full text-sm md:text-base font-black shadow-xl hover:bg-gray-900 transition-all uppercase tracking-tighter flex items-center justify-center gap-2">
+                        <span class="btnText" data-i18n="log-btn">Accedi</span><div class="spinner hidden"></div>
+                    </button>
+                    
+                    <div class="text-center text-xs text-gray-500 mt-2">
+                        <span data-i18n="log-q">Non hai un account?</span> <a href="#" onclick="switchAuthView('register'); return false;" class="text-black font-black hover:underline uppercase tracking-tight" data-i18n="log-a">Iscriviti</a>
+                    </div>
+                </form>
+
+                <!-- FORM RESET PASSWORD -->
+                <form id="resetForm" class="w-full max-w-sm mx-auto flex flex-col gap-4 hidden">
+                    <div class="mb-4 text-center md:text-left">
+                        <h4 class="text-2xl md:text-3xl font-black leading-tight mb-2 tracking-tighter" data-i18n="res-title">
+                            Recupera Password
+                        </h4>
+                        <p class="text-sm text-gray-500 font-medium leading-relaxed" data-i18n="res-desc">
+                            Inserisci la tua email e ti invieremo le istruzioni per il reset.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <input type="email" id="resetEmail" placeholder="Email" data-i18n-placeholder="ph-email" required class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-black outline-none transition-all text-sm bg-white">
+                    </div>
+
+                    <button type="submit" class="w-full px-6 py-4 mt-2 bg-black text-white rounded-full text-sm md:text-base font-black shadow-xl hover:bg-gray-900 transition-all uppercase tracking-tighter flex items-center justify-center gap-2">
+                        <span class="btnText" data-i18n="res-btn">Invia Link</span><div class="spinner hidden"></div>
+                    </button>
+                    
+                    <div class="text-center text-xs text-gray-500 mt-2">
+                        <a href="#" onclick="switchAuthView('login'); return false;" class="text-black font-black hover:underline uppercase tracking-tight" data-i18n="res-a">← Torna al Login</a>
+                    </div>
+                </form>
+
             </div>
             
         </div>
@@ -284,14 +392,13 @@
         <!-- DIVISORE "ECCO COME FUNZIONA" -->
         <div class="flex items-center gap-8 mb-8 w-full max-w-5xl mx-auto">
             <div class="h-px bg-gray-200 flex-1"></div>
-            <h3 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.4em] text-center">Ecco come funziona</h3>
+            <h3 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.4em] text-center" data-i18n="how-it-works">Ecco come funziona</h3>
             <div class="h-px bg-gray-200 flex-1"></div>
         </div>
 
         <!-- SEZIONE MANGA WORKFLOW CLICCABILE -->
         <div class="w-full max-w-full mb-10 mx-auto px-0 flex justify-center overflow-hidden">
             <div class="bg-white p-2 md:p-3 rounded-[2rem] border border-gray-100 shadow-xl w-full max-w-[95vw] md:max-w-5xl">
-                <!-- Immagine con click per la lightbox e cursore lente ingrandimento -->
                 <img src="https://www.googleapis.com/drive/v3/files/1-ccMRJ23wiJlop8mHkN8-e16nXsPjvcP?alt=media&key=AIzaSyBJFeOfENIvfzunniWaWQ6sj9M-oH4CJAo" 
                      alt="Guida al Workflow" 
                      class="w-full h-auto block rounded-[1.5rem] cursor-zoom-in hover:opacity-90 transition-opacity"
@@ -301,6 +408,150 @@
 
     </div>
 
+    <!-- CONTENITORE DASHBOARD (Mostrato al login) -->
+    <div id="appContainer" class="hidden flex-1 flex flex-col h-screen w-full font-sans text-gray-800 relative">
+        
+        <!-- BOTTONE FISSO PIATTAFORMA (Apre il modale di Attivazione finché non c'è il link) -->
+        <button onclick="openActivationModal()" class="fixed bottom-6 right-6 z-[100] bg-black text-white shadow-2xl px-5 py-4 md:px-6 md:py-4 rounded-full font-black uppercase tracking-tighter flex items-center gap-3 hover:scale-105 transition-transform border border-white/20 cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+            <span class="hidden md:inline" data-i18n="open-platform-desk">Apri Piattaforma Personale</span>
+            <span class="md:hidden" data-i18n="open-platform-mob">Piattaforma</span>
+        </button>
+
+        <!-- Topbar DASHBOARD -->
+        <header class="bg-white shadow-sm border-b px-4 md:px-6 py-4 flex justify-between items-center z-10">
+            <div class="flex items-center gap-2 text-black font-black text-lg md:text-xl tracking-tighter truncate">
+                <svg class="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+                <span class="hidden sm:inline">APPSOLUTE STUDIO&trade;</span>
+            </div>
+            <div class="flex items-center gap-5 md:gap-6">
+                
+                <!-- SELETTORE LINGUA (Integrato Dashboard) -->
+                <div class="relative flex items-center z-50">
+                    <button onclick="toggleLangDropdown(event)" class="flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-black transition-colors bg-transparent border-none p-0 outline-none">
+                        <span class="current-lang-emoji text-sm md:text-base leading-none block">🇮🇹</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="lang-dropdown absolute top-full right-0 mt-3 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden hidden flex-col min-w-[140px] origin-top-right transition-all">
+                        <button onclick="setLanguage('it')" class="lang-it-btn px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm text-left font-black w-full border-b border-gray-100 transition-colors text-black">
+                            <span class="text-xl">🇮🇹</span> Italiano
+                        </button>
+                        <button onclick="setLanguage('en')" class="lang-en-btn px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm text-left font-black w-full transition-colors text-gray-500 hover:text-black">
+                            <span class="text-xl">🇬🇧</span> English
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="logout()" class="text-xs md:text-sm text-gray-400 hover:text-black font-bold uppercase tracking-wide transition-colors flex items-center leading-none" data-i18n="logout-btn">Esci</button>
+            </div>
+        </header>
+
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Sidebar Cartelle -->
+            <aside class="w-64 bg-gray-50 border-r flex flex-col h-full flex-shrink-0">
+                <div class="p-4 border-b">
+                    <button onclick="promptCreateFolder()" class="w-full bg-white text-black border-2 border-black hover:bg-gray-100 font-black py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm uppercase tracking-tight">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        <span data-i18n="new-folder-btn">Nuova Cartella</span>
+                    </button>
+                    
+                    <!-- Nuovo Avviso Cartelle (Fisso e integrato) -->
+                    <div class="mt-4 bg-gray-100/80 border border-gray-200 rounded-xl p-3.5 shadow-sm">
+                        <div class="flex items-start gap-2.5">
+                            <svg class="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <p class="text-[11px] text-gray-600 font-medium leading-relaxed">
+                                <span data-i18n="folder-hint-1">Crea e rinomina le cartelle in base allo </span><strong class="text-black" data-i18n="folder-hint-2">stile</strong><span data-i18n="folder-hint-3"> dei tuoi tatuaggi.</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto p-3 hide-scrollbar" id="folderList">
+                    <!-- Lista cartelle generata via JS -->
+                </div>
+            </aside>
+
+            <!-- Area Principale File -->
+            <main class="flex-1 bg-white flex flex-col h-full relative">
+                <div id="mainContentHeader" class="p-5 md:p-6 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white hidden gap-4">
+                    <h2 id="currentFolderName" class="text-xl md:text-2xl font-black text-black tracking-tighter truncate max-w-full">Nome Cartella</h2>
+                    
+                    <div class="relative w-full sm:w-auto">
+                        <input type="file" id="fileInput" accept="image/jpeg, image/png" class="hidden" onchange="handleFileUpload(event)">
+                        <button onclick="document.getElementById('fileInput').click()" class="w-full sm:w-auto bg-black hover:bg-gray-900 text-white font-black py-2.5 px-5 rounded-full shadow-md transition-all flex items-center justify-center gap-2 text-sm uppercase tracking-tighter">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            <span data-i18n="upload-btn">CARICA IMMAGINI TATUAGGI</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Nuovo Banner Formati (Appare quando si seleziona una cartella) -->
+                <div id="formatBanner" class="hidden bg-[#fefce8] border-b border-[#fef08a] p-3 md:p-4 text-[#854d0e] text-[11px] md:text-xs leading-relaxed shadow-sm items-start md:items-center gap-3">
+                    <svg class="w-5 h-5 flex-shrink-0 mt-0.5 md:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <p class="font-medium">
+                        <span data-i18n="fmt-1">Le immagini vanno caricate in </span><strong class="font-black" data-i18n="fmt-2">PNG senza sfondo</strong><span data-i18n="fmt-3"> o </span><strong class="font-black" data-i18n="fmt-4">JPEG con sfondo bianco</strong><span data-i18n="fmt-5"> (l'AI integrata nell'app permetterà all'utente di inserire il tatuaggio senza sfondo).</span>
+                    </p>
+                </div>
+                
+                <!-- Overlay Caricamento Compressione -->
+                <div id="uploadProgress" class="hidden bg-gray-100 p-3 text-center text-xs md:text-sm text-black border-b font-bold tracking-tight animate-pulse uppercase">
+                    <span data-i18n="upload-progress">Compressione e caricamento in corso...</span>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
+                    <div id="emptyState" class="h-full flex flex-col items-center justify-center text-gray-400">
+                        <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"></path></svg>
+                        <p class="font-medium text-sm text-center px-4" data-i18n="empty-state">Seleziona o crea una cartella per iniziare a gestire i tuoi contenuti</p>
+                    </div>
+
+                    <div id="fileGrid" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        <!-- File generati via JS -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modale Info Attivazione Piattaforma (Al click sul bottone fisso) -->
+    <div id="activationModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100005]">
+        <div class="bg-white rounded-[1.5rem] p-6 md:p-8 w-[90%] max-w-sm shadow-2xl relative text-center">
+            <button onclick="closeActivationModal()" class="absolute top-4 right-4 text-gray-400 hover:text-black transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="mx-auto w-12 h-12 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <h3 class="text-xl font-black mb-2 tracking-tighter uppercase" data-i18n="act-title">In Attivazione</h3>
+            <p class="text-sm text-gray-500 font-medium leading-relaxed mb-6" data-i18n="act-desc">
+                Il tuo link personale non è ancora pronto. Verrà attivato entro 24 ore. Riceverai una notifica assieme alla mail di conferma.
+            </p>
+            <button onclick="closeActivationModal()" class="w-full px-5 py-3 bg-black text-white font-bold rounded-xl hover:bg-gray-900 text-sm uppercase tracking-tight transition-colors" data-i18n="act-btn">Ho capito</button>
+        </div>
+    </div>
+
+    <!-- Modale per rinominare (Usato per File e Cartelle) -->
+    <div id="renameModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100005]">
+        <div class="bg-white rounded-[1.5rem] p-6 md:p-8 w-[90%] max-w-sm shadow-2xl">
+            <h3 class="text-xl font-black mb-4 tracking-tighter" data-i18n="ren-title">Rinomina</h3>
+            <input type="text" id="renameInput" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-black outline-none mb-5 text-sm" data-i18n-placeholder="ph-rename">
+            <div class="flex justify-end gap-3">
+                <button onclick="closeRenameModal()" class="px-5 py-2.5 text-gray-500 font-bold hover:bg-gray-100 rounded-xl text-sm uppercase tracking-tight transition-colors" data-i18n="ren-cancel">Annulla</button>
+                <button id="saveRenameBtn" class="px-5 py-2.5 bg-black text-white font-bold rounded-xl hover:bg-gray-900 text-sm uppercase tracking-tight transition-colors" data-i18n="ren-save">Salva</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale per Nuova Cartella -->
+    <div id="createFolderModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100005]">
+        <div class="bg-white rounded-[1.5rem] p-6 md:p-8 w-[90%] max-w-sm shadow-2xl">
+            <h3 class="text-xl font-black mb-4 tracking-tighter" data-i18n="newf-title">Nuova Cartella</h3>
+            <input type="text" id="newFolderInput" placeholder="Nome della cartella" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-black outline-none mb-5 text-sm" data-i18n-placeholder="ph-rename">
+            <div class="flex justify-end gap-3">
+                <button onclick="closeCreateFolderModal()" class="px-5 py-2.5 text-gray-500 font-bold hover:bg-gray-100 rounded-xl text-sm uppercase tracking-tight transition-colors" data-i18n="newf-cancel">Annulla</button>
+                <button id="saveNewFolderBtn" class="px-5 py-2.5 bg-black text-white font-bold rounded-xl hover:bg-gray-900 text-sm uppercase tracking-tight transition-colors" data-i18n="newf-save">Crea</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODALE DISCLAIMER ESEMPIO -->
     <div id="demo-modal">
         <div class="modal-content text-center shadow-2xl border border-gray-100 max-w-lg rounded-[2rem] p-8 md:p-12 bg-white relative">
@@ -308,14 +559,14 @@
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
             
-            <h3 class="text-2xl md:text-3xl font-black text-black mb-6 tracking-tighter uppercase">LASCIATI ISPIRARE</h3>
+            <h3 class="text-2xl md:text-3xl font-black text-black mb-6 tracking-tighter uppercase" data-i18n="demo-title">LASCIATI ISPIRARE</h3>
             
             <p class="text-gray-600 text-base md:text-lg mb-8 leading-relaxed">
-                Stai per accedere a una <strong class="text-black">sottoscrizione realmente attiva</strong> per lo studio <em>Serpe in Seno</em> con sede a Treviso (Italia) del tatuatore <strong>lorenzoblk.tattoo</strong>.
+                <span data-i18n="demo-desc-1">Stai per accedere a una </span><strong class="text-black" data-i18n="demo-desc-2">sottoscrizione realmente attiva</strong><span data-i18n="demo-desc-3"> per lo studio </span><em>Serpe in Seno</em><span data-i18n="demo-desc-4"> con sede a Treviso (Italia) del tatuatore </span><strong>lorenzoblk.tattoo</strong>.
             </p>
             
             <div class="flex flex-col gap-3">
-                <a href="https://crashbandicoot97.github.io/Public/lorenzoblk.tattoo.html" target="_blank" class="px-8 py-4 bg-black text-white font-black rounded-full shadow-lg transition-all text-sm md:text-base text-center no-underline uppercase tracking-wider hover:scale-105 active:scale-95">Apri Piattaforma</a>
+                <a href="https://gemini.google.com/share/fe21a45508ed" target="_blank" class="px-8 py-4 bg-black text-white font-black rounded-full shadow-lg transition-all text-sm md:text-base text-center no-underline uppercase tracking-wider hover:scale-105 active:scale-95" data-i18n="demo-btn">Apri Piattaforma</a>
             </div>
         </div>
     </div>
@@ -331,22 +582,241 @@
     </div>
 
     <script>
+        // ==========================================
+        // SISTEMA DI TRADUZIONE (I18N)
+        // ==========================================
+        let currentLang = 'it';
+
+        const translations = {
+            it: {
+                "enter-btn": "Entra nello Studio",
+                "hub-title-1": "Sei un tatuatore?",
+                "hub-desc-1": "Ecco un esempio della piattaforma di un tatuatore come te che ha sottoscritto l’abbonamento.",
+                "hub-social-text": "Il link della propria piattaforma può essere poi pubblicato nei propri canali ufficiali:",
+                "explore-btn": "Esplora Piattaforma Esempio",
+                "badge-free": "3 Giorni Gratis",
+                "hub-title-2": "Inizia la Prova",
+                "hub-desc-2-1": "Nessun metodo di pagamento richiesto ora. Successivamente deciderai se pagare ",
+                "hub-desc-2-2": ". Il link di pagamento ti verrà inviato via mail entro 24 ore dall'iscrizione.",
+                "reg-btn": "Iscriviti ora e inizia i 3 giorni di prova senza nessun pagamento",
+                "reg-q": "Hai già un account?",
+                "reg-a": "Accedi",
+                "log-title": "Bentornato",
+                "log-desc": "Accedi al tuo Studio Virtuale.",
+                "log-forgot": "Password dimenticata?",
+                "log-btn": "Accedi",
+                "log-q": "Non hai un account?",
+                "log-a": "Iscriviti",
+                "res-title": "Recupera Password",
+                "res-desc": "Inserisci la tua email e ti invieremo le istruzioni per il reset.",
+                "res-btn": "Invia Link",
+                "res-a": "← Torna al Login",
+                "how-it-works": "Ecco come funziona",
+                "open-platform-desk": "Apri Piattaforma Personale",
+                "open-platform-mob": "Piattaforma",
+                "logout-btn": "Esci",
+                "new-folder-btn": "Nuova Cartella",
+                "folder-hint-1": "Crea e rinomina le cartelle in base allo ",
+                "folder-hint-2": "stile",
+                "folder-hint-3": " dei tuoi tatuaggi.",
+                "upload-btn": "CARICA IMMAGINI TATUAGGI",
+                "fmt-1": "Le immagini vanno caricate in ",
+                "fmt-2": "PNG senza sfondo",
+                "fmt-3": " o ",
+                "fmt-4": "JPEG con sfondo bianco",
+                "fmt-5": " (l'AI integrata nell'app permetterà all'utente di inserire il tatuaggio senza sfondo).",
+                "upload-progress": "Compressione e caricamento in corso...",
+                "empty-state": "Seleziona o crea una cartella per iniziare a gestire i tuoi contenuti",
+                "act-title": "In Attivazione",
+                "act-desc": "Il tuo link personale non è ancora pronto. Verrà attivato entro 24 ore. Riceverai una notifica assieme alla mail di conferma.",
+                "act-btn": "Ho capito",
+                "ren-title": "Rinomina",
+                "ren-cancel": "Annulla",
+                "ren-save": "Salva",
+                "newf-title": "Nuova Cartella",
+                "newf-cancel": "Annulla",
+                "newf-save": "Crea",
+                "demo-title": "LASCIATI ISPIRARE",
+                "demo-desc-1": "Stai per accedere a una ",
+                "demo-desc-2": "sottoscrizione realmente attiva",
+                "demo-desc-3": " per lo studio ",
+                "demo-desc-4": " con sede a Treviso (Italia) del tatuatore ",
+                "demo-btn": "Apri Piattaforma",
+                "empty-folder": "Nessuna immagine in questa cartella.",
+                "err-img": "Errore durante l'elaborazione dell'immagine",
+                "err-pass-match": "Le password non coincidono",
+                "msg-reg": "Registrazione simulata. Ora fai login!",
+                "msg-reset": "Email di recupero inviata (Simulata)."
+            },
+            en: {
+                "enter-btn": "Enter the Studio",
+                "hub-title-1": "Are you a tattoo artist?",
+                "hub-desc-1": "Here is an example of the platform from a subscribed tattoo artist like you.",
+                "hub-social-text": "The platform link can then be published on your official channels:",
+                "explore-btn": "Explore Example Platform",
+                "badge-free": "3 Days Free Trial",
+                "hub-title-2": "Start Free Trial",
+                "hub-desc-2-1": "No payment method required now. You decide later whether to pay ",
+                "hub-desc-2-2": ". The payment link will be emailed to you within 24 hours of signing up.",
+                "reg-btn": "Sign up now and start 3 days trial without any payment",
+                "reg-q": "Already have an account?",
+                "reg-a": "Log in",
+                "log-title": "Welcome back",
+                "log-desc": "Access your Virtual Studio.",
+                "log-forgot": "Forgot password?",
+                "log-btn": "Log in",
+                "log-q": "Don't have an account?",
+                "log-a": "Sign up",
+                "res-title": "Recover Password",
+                "res-desc": "Enter your email and we will send you reset instructions.",
+                "res-btn": "Send Link",
+                "res-a": "← Back to Login",
+                "how-it-works": "How it works",
+                "open-platform-desk": "Open Personal Platform",
+                "open-platform-mob": "Platform",
+                "logout-btn": "Log out",
+                "new-folder-btn": "New Folder",
+                "folder-hint-1": "Create and rename folders based on your tattoo ",
+                "folder-hint-2": "style",
+                "folder-hint-3": ".",
+                "upload-btn": "UPLOAD TATTOO IMAGES",
+                "fmt-1": "Images must be uploaded in ",
+                "fmt-2": "PNG without background",
+                "fmt-3": " or ",
+                "fmt-4": "JPEG with white background",
+                "fmt-5": " (the built-in AI will allow the user to insert the tattoo without background).",
+                "upload-progress": "Compressing and uploading...",
+                "empty-state": "Select or create a folder to start managing your content",
+                "act-title": "Activating",
+                "act-desc": "Your personal link is not ready yet. It will be activated within 24 hours. You will receive a notification along with the confirmation email.",
+                "act-btn": "Got it",
+                "ren-title": "Rename",
+                "ren-cancel": "Cancel",
+                "ren-save": "Save",
+                "newf-title": "New Folder",
+                "newf-cancel": "Cancel",
+                "newf-save": "Create",
+                "demo-title": "GET INSPIRED",
+                "demo-desc-1": "You are about to access an ",
+                "demo-desc-2": "active subscription",
+                "demo-desc-3": " for the ",
+                "demo-desc-4": " studio based in Treviso (Italy) by the tattoo artist ",
+                "demo-btn": "Open Platform",
+                "empty-folder": "No images in this folder.",
+                "err-img": "Error processing image",
+                "err-pass-match": "Passwords do not match",
+                "msg-reg": "Registration simulated. Now log in!",
+                "msg-reset": "Recovery email sent (Simulated)."
+            }
+        };
+
+        const placeholders = {
+            it: {
+                "ph-email": "Email",
+                "ph-pass": "Password",
+                "ph-conf": "Conferma Password",
+                "ph-rename": "Nome della cartella"
+            },
+            en: {
+                "ph-email": "Email",
+                "ph-pass": "Password",
+                "ph-conf": "Confirm Password",
+                "ph-rename": "Folder name"
+            }
+        }
+
+        function toggleLangDropdown(e) {
+            e.stopPropagation();
+            const btn = e.currentTarget;
+            const dd = btn.nextElementSibling;
+            
+            document.querySelectorAll('.lang-dropdown').forEach(dropdown => {
+                if (dropdown !== dd) {
+                    dropdown.classList.add('hidden');
+                    dropdown.classList.remove('flex');
+                }
+            });
+
+            if (dd) {
+                dd.classList.toggle('hidden');
+                dd.classList.toggle('flex');
+            }
+        }
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.lang-dropdown').forEach(dd => {
+                if(!dd.classList.contains('hidden')) {
+                    dd.classList.add('hidden');
+                    dd.classList.remove('flex');
+                }
+            });
+        });
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            const emoji = lang === 'it' ? '🇮🇹' : '🇬🇧';
+            
+            document.querySelectorAll('.current-lang-emoji').forEach(el => {
+                el.textContent = emoji;
+            });
+            
+            document.querySelectorAll('.lang-it-btn').forEach(btn => {
+                if(lang === 'it') {
+                    btn.classList.add('text-black');
+                    btn.classList.remove('text-gray-500');
+                } else {
+                    btn.classList.remove('text-black');
+                    btn.classList.add('text-gray-500');
+                }
+            });
+
+            document.querySelectorAll('.lang-en-btn').forEach(btn => {
+                if(lang === 'en') {
+                    btn.classList.add('text-black');
+                    btn.classList.remove('text-gray-500');
+                } else {
+                    btn.classList.remove('text-black');
+                    btn.classList.add('text-gray-500');
+                }
+            });
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    el.innerHTML = translations[lang][key];
+                }
+            });
+
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (placeholders[lang][key]) {
+                    el.placeholder = placeholders[lang][key];
+                }
+            });
+
+            if (currentFolderId) {
+                renderFiles(); 
+            }
+        }
+
+        function getStr(key) {
+            return translations[currentLang][key] || key;
+        }
+
+        // ==========================================
+        // GESTIONE ANIMAZIONE PARTICELLE
+        // ==========================================
         (function() {
-            // --- LANDING PARTICLES (Stile Inchiostro) ---
             const container = document.getElementById('landing-container');
             const canvas = document.getElementById('landing-canvas');
             const ctx = canvas.getContext('2d');
             const enterBtn = document.getElementById('enter-btn');
             
             let width, height, particles = [], mouse = { x: -1000, y: -1000 }, isTransitioning = false;
-            let lastInteractionTime = 0; // Traccia l'ultima volta che l'utente ha toccato lo schermo
+            let lastInteractionTime = 0; 
             
-            // QUADRUPLICATO: 1400 su mobile, 4000 su desktop
             let PARTICLE_COUNT = window.innerWidth < 768 ? 1400 : 4000;
 
-            // PRE-RENDERING: Disegniamo un cerchio perfetto in memoria UNA SOLA VOLTA.
-            // Copiare un'immagine (drawImage) sfrutta l'accelerazione hardware ed è enormemente più 
-            // veloce e definito rispetto a calcolare forme geometriche a ogni singolo frame.
             const particleSprite = document.createElement('canvas');
             particleSprite.width = 20;
             particleSprite.height = 20;
@@ -363,15 +833,12 @@
                     this.y = (window.innerHeight / 2) + Math.sin(angle) * r;
                     this.vx = (Math.random() - 0.5) * 2;
                     this.vy = (Math.random() - 0.5) * 2;
-                    // PARTICELLE MOLTO PIÙ GRANDI E DEFINITE
                     this.size = Math.random() * 6 + 2; 
                     this.baseX = this.x; this.baseY = this.y;
-                    // OTTIMIZZAZIONE: Rimosso randomOffset pesante, usiamo un moltiplicatore statico
                     this.swayFactor = Math.random() * 0.8 + 0.2; 
                 }
                 draw() {
                     if (this.size <= 0.1) return; 
-                    // Usiamo la scheda grafica per incollare l'immagine pre-calcolata, centrata sulla particella
                     ctx.drawImage(particleSprite, this.x - this.size/2, this.y - this.size/2, this.size, this.size); 
                 }
                 update(globalSwayX, globalSwayY) {
@@ -379,18 +846,14 @@
                         this.size *= 0.88; this.x += this.vx * 3; this.y += this.vy * 3; return;
                     }
 
-                    // MOVIMENTO ORGANICO E CONTINUO: Calcolato una volta sola per frame e applicato a tutti
                     this.vx += globalSwayX * this.swayFactor;
                     this.vy += globalSwayY * this.swayFactor;
 
                     let dx = mouse.x - this.x, dy = mouse.y - this.y;
                     
-                    // OTTIMIZZAZIONE ESTREMA: "Bounding Box Check". 
-                    // Prima di fare operazioni pesanti (moltiplicazioni e radici quadrate), controlliamo in modo
-                    // leggerissimo (maggiore/minore) se il dito è almeno "vagamente" vicino alla particella.
                     if (dx > -250 && dx < 250 && dy > -250 && dy < 250) {
                         let distSq = dx * dx + dy * dy;
-                        if (distSq < 62500) { // 250 * 250
+                        if (distSq < 62500) { 
                             let distance = Math.sqrt(distSq);
                             const force = (250 - distance) / 250;
                             this.vx -= (dx / distance) * force * 20;
@@ -398,8 +861,8 @@
                         }
                     }
 
-                    this.vx *= 0.92; this.vy *= 0.92; // Attrito per un movimento più morbido
-                    this.vx += (this.baseX - this.x) * 0.04; // Le particelle tendono a tornare al centro per non scappare via
+                    this.vx *= 0.92; this.vy *= 0.92;
+                    this.vx += (this.baseX - this.x) * 0.04; 
                     this.vy += (this.baseY - this.y) * 0.04;
                     this.x += this.vx;
                     this.y += this.vy;
@@ -415,24 +878,18 @@
             }
 
             function animate() {
-                // OTTIMIZZAZIONE: Calcoliamo seni e coseni (operazioni pesanti) UNA SOLA VOLTA 
-                // all'inizio del frame, non 4000 volte per ogni particella!
                 const time = Date.now() * 0.0015;
                 const globalSwayX = Math.sin(time) * 1.2;
                 const globalSwayY = Math.cos(time * 0.8) * 1.2;
 
-                // MOVIMENTO AUTONOMO: Se l'utente non interagisce da 1.5 secondi, riprende il movimento automatico
                 if (Date.now() - lastInteractionTime > 1500 && !isTransitioning) {
-                    const autoTime = time * 0.5; // Velocità dimezzata rispetto a prima
-                    // Traiettoria "a forma di 8" (Lemniscata) che passa sempre esattamente per il centro
+                    const autoTime = time * 0.5; 
                     mouse.x = width / 2 + Math.sin(autoTime) * (width * 0.4);
                     mouse.y = height / 2 + Math.sin(autoTime * 2) * (height * 0.3);
                 }
 
                 ctx.clearRect(0, 0, width, height);
                 let particlesInCenter = 0;
-                
-                // FIX: Aumentata la soglia dal 3% al 18% in modo che la scritta appaia molto più in fretta
                 let threshold = PARTICLE_COUNT * 0.18;
 
                 particles.forEach(p => {
@@ -440,8 +897,7 @@
                     p.draw();
                     if (!isTransitioning) {
                         let centerDistSq = (p.x - width/2) * (p.x - width/2) + (p.y - height/2) * (p.y - height/2);
-                        // FIX: Ridotto il raggio di controllo centrale (da 130 a 90) per attivarsi prima
-                        if (centerDistSq < 8100) particlesInCenter++; // 90 * 90
+                        if (centerDistSq < 8100) particlesInCenter++; 
                     }
                 });
 
@@ -464,7 +920,6 @@
                 mouse.y = e.clientY; 
             });
             
-            // Supporto tocco su dispositivi mobili per disperdere le particelle
             window.addEventListener('touchmove', e => { 
                 if(e.touches.length > 0) {
                     lastInteractionTime = Date.now();
@@ -492,7 +947,9 @@
             init(); animate();
         })();
 
-        // Modale Esempio Piattaforma
+        // ==========================================
+        // GESTIONE LIGHTBOX E MODALI
+        // ==========================================
         function openDemoModal(e) {
             e.preventDefault();
             document.getElementById('demo-modal').classList.add('active');
@@ -503,7 +960,17 @@
             }
         });
 
-        // Logica Lightbox + Zoom
+        // Gestione Modale Attivazione
+        function openActivationModal() {
+            document.getElementById('activationModal').classList.remove('hidden');
+        }
+        function closeActivationModal() {
+            document.getElementById('activationModal').classList.add('hidden');
+        }
+        document.getElementById('activationModal').addEventListener('click', function(e) {
+            if (e.target === this) closeActivationModal();
+        });
+
         const lightboxModal = document.getElementById('lightbox-modal');
         const lightboxImg = document.getElementById('lightbox-img');
         const scrollContainer = document.getElementById('lightbox-scroll-container');
@@ -512,41 +979,34 @@
         function openLightbox(src) {
             lightboxImg.src = src;
             lightboxModal.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Blocca scroll pagina
+            document.body.style.overflow = 'hidden';
             isZoomed = false;
             resetZoomStyle();
         }
 
         function closeLightbox() {
             lightboxModal.classList.remove('active');
-            document.body.style.overflow = ''; // Riattiva scroll
+            document.body.style.overflow = '';
         }
 
         function toggleZoom(e) {
             if (!isZoomed) {
-                // Zoom IN
                 isZoomed = true;
-                
-                // Calcola dove ha cliccato l'utente rispetto all'immagine
                 const rect = lightboxImg.getBoundingClientRect();
                 const clickXRatio = (e.clientX - rect.left) / rect.width;
                 const clickYRatio = (e.clientY - rect.top) / rect.height;
 
-                // Ingrandisci (rende l'immagine molto più larga dello schermo per permettere lo scroll)
                 lightboxImg.style.maxWidth = 'none';
                 lightboxImg.style.maxHeight = 'none';
                 lightboxImg.style.width = window.innerWidth > 768 ? '150vw' : '250vw';
                 lightboxImg.style.height = 'auto';
                 lightboxImg.style.cursor = 'zoom-out';
 
-                // Centra la vista sul punto cliccato
                 setTimeout(() => {
                     scrollContainer.scrollLeft = (scrollContainer.scrollWidth * clickXRatio) - (scrollContainer.clientWidth / 2);
                     scrollContainer.scrollTop = (scrollContainer.scrollHeight * clickYRatio) - (scrollContainer.clientHeight / 2);
                 }, 10);
-
             } else {
-                // Zoom OUT
                 isZoomed = false;
                 resetZoomStyle();
             }
@@ -559,6 +1019,287 @@
             lightboxImg.style.height = 'auto';
             lightboxImg.style.cursor = 'zoom-in';
         }
+
+        // ==========================================
+        // GESTIONE AUTENTICAZIONE E DASHBOARD
+        // ==========================================
+        let currentUser = null;
+        let folders = [];
+        let files = [];
+        let currentFolderId = null;
+
+        const msgBox = document.getElementById('messageBox');
+
+        function switchAuthView(view) {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('resetForm').classList.add('hidden');
+            msgBox.classList.add('hidden');
+
+            if (view === 'login') {
+                document.getElementById('loginForm').classList.remove('hidden');
+            } else if (view === 'register') {
+                document.getElementById('registerForm').classList.remove('hidden');
+            } else {
+                document.getElementById('resetForm').classList.remove('hidden');
+            }
+        }
+
+        function showMessage(msg, type) {
+            msgBox.textContent = msg;
+            msgBox.className = `mb-4 p-3 rounded-lg text-xs md:text-sm font-medium block absolute top-4 left-4 right-4 text-center z-10 shadow-md ${type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+            setTimeout(() => { msgBox.classList.add('hidden'); }, 4000);
+        }
+
+        function toggleLoading(formId, isLoading) {
+            const form = document.getElementById(formId);
+            const btn = form.querySelector('button[type="submit"]');
+            const text = btn.querySelector('.btnText');
+            const spinner = btn.querySelector('.spinner');
+            
+            btn.disabled = isLoading;
+            if (isLoading) {
+                text.classList.add('opacity-50');
+                spinner.classList.remove('hidden');
+            } else {
+                text.classList.remove('opacity-50');
+                spinner.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            toggleLoading('loginForm', true);
+            setTimeout(() => {
+                toggleLoading('loginForm', false);
+                currentUser = { id: "123" };
+                initDashboard();
+            }, 1000);
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if(document.getElementById('regPassword').value !== document.getElementById('regConfirm').value) {
+                showMessage(getStr('err-pass-match'), 'error'); return;
+            }
+            toggleLoading('registerForm', true);
+            setTimeout(() => {
+                toggleLoading('registerForm', false);
+                showMessage(getStr('msg-reg'), 'success');
+                switchAuthView('login');
+            }, 1000);
+        });
+
+        document.getElementById('resetForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            toggleLoading('resetForm', true);
+            setTimeout(() => {
+                toggleLoading('resetForm', false);
+                showMessage(getStr('msg-reset'), 'success');
+                switchAuthView('login');
+            }, 1000);
+        });
+
+        function initDashboard() {
+            document.body.classList.add('app-active');
+            
+            folders = [{ id: 'f1', name: 'Traditional' }, { id: 'f2', name: 'Realistico' }, { id: 'f3', name: 'Fineline' }];
+            files = [];
+            currentFolderId = null;
+            
+            renderFolders();
+            renderFiles();
+        }
+
+        function logout() {
+            currentUser = null;
+            document.body.classList.remove('app-active');
+            document.getElementById('loginForm').reset();
+            document.getElementById('registerForm').reset();
+            switchAuthView('register');
+        }
+
+        function renderFolders() {
+            const list = document.getElementById('folderList');
+            list.innerHTML = '';
+            folders.forEach(f => {
+                const isSelected = f.id === currentFolderId;
+                const div = document.createElement('div');
+                div.className = `flex items-center justify-between p-2.5 rounded-xl cursor-pointer mb-1 transition-colors group ${isSelected ? 'bg-black text-white font-bold' : 'hover:bg-gray-200 text-gray-700 font-medium'}`;
+                
+                div.innerHTML = `
+                    <div class="flex items-center gap-2.5 flex-1 overflow-hidden" onclick="selectFolder('${f.id}')">
+                        <svg class="w-4 h-4 flex-shrink-0 ${isSelected ? 'text-white' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>
+                        <span class="truncate text-sm tracking-tight">${f.name}</span>
+                    </div>
+                    <button onclick="openRenameModal('folder', '${f.id}', '${f.name}')" class="${isSelected ? 'text-gray-300 hover:text-white' : 'text-gray-400 hover:text-black'} opacity-0 group-hover:opacity-100 p-1 transition-opacity">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    </button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function selectFolder(id) {
+            currentFolderId = id;
+            renderFolders();
+            
+            const folder = folders.find(f => f.id === id);
+            document.getElementById('currentFolderName').textContent = folder.name;
+            document.getElementById('mainContentHeader').classList.remove('hidden');
+            document.getElementById('mainContentHeader').classList.add('flex');
+            
+            // Mostra il banner formati
+            document.getElementById('formatBanner').classList.remove('hidden');
+            document.getElementById('formatBanner').classList.add('flex');
+
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('fileGrid').classList.remove('hidden');
+            
+            renderFiles();
+        }
+
+        function promptCreateFolder() {
+            document.getElementById('newFolderInput').value = '';
+            document.getElementById('createFolderModal').classList.remove('hidden');
+            document.getElementById('newFolderInput').focus();
+        }
+
+        function closeCreateFolderModal() {
+            document.getElementById('createFolderModal').classList.add('hidden');
+        }
+
+        document.getElementById('saveNewFolderBtn').addEventListener('click', () => {
+            const name = document.getElementById('newFolderInput').value.trim();
+            if (name) {
+                folders.push({ id: 'f_' + Date.now(), name: name });
+                renderFolders();
+                closeCreateFolderModal();
+            }
+        });
+
+        async function handleFileUpload(event) {
+            const fileInput = event.target;
+            if (!fileInput.files.length || !currentFolderId) return;
+
+            const file = fileInput.files[0];
+            document.getElementById('uploadProgress').classList.remove('hidden');
+
+            try {
+                const compressedBlob = await compressImage(file, 1920, 1080, 0.8);
+                const localUrl = URL.createObjectURL(compressedBlob);
+                
+                files.push({
+                    id: 'img_' + Date.now(),
+                    folderId: currentFolderId,
+                    name: file.name,
+                    url: localUrl
+                });
+                renderFiles();
+            } catch (err) {
+                alert(getStr('err-img'));
+                console.error(err);
+            } finally {
+                document.getElementById('uploadProgress').classList.add('hidden');
+                fileInput.value = ''; 
+            }
+        }
+
+        function compressImage(file, maxWidth, maxHeight, quality) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = event => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height = Math.round(height * (maxWidth / width));
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width = Math.round(width * (maxHeight / height));
+                                height = maxHeight;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob(blob => {
+                            resolve(blob);
+                        }, 'image/jpeg', quality);
+                    };
+                };
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function renderFiles() {
+            const grid = document.getElementById('fileGrid');
+            grid.innerHTML = '';
+            
+            const folderFiles = files.filter(f => f.folderId === currentFolderId);
+            
+            if (folderFiles.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-10 font-medium text-sm" data-i18n="empty-folder">${getStr('empty-folder')}</div>`;
+                return;
+            }
+
+            folderFiles.forEach(f => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden group relative hover:shadow-md transition-shadow';
+                card.innerHTML = `
+                    <div class="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+                        <img src="${f.url}" class="object-cover w-full h-full" alt="${f.name}">
+                    </div>
+                    <div class="p-2.5 text-xs font-bold text-gray-700 truncate tracking-tight">${f.name}</div>
+                    <button onclick="openRenameModal('file', '${f.id}', '${f.name}')" class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-1.5 rounded-lg text-gray-600 hover:text-black opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        let renameTarget = { type: null, id: null };
+        
+        function openRenameModal(type, id, currentName) {
+            renameTarget = { type, id };
+            document.getElementById('renameInput').value = currentName;
+            document.getElementById('renameModal').classList.remove('hidden');
+            document.getElementById('renameInput').focus();
+        }
+
+        function closeRenameModal() {
+            document.getElementById('renameModal').classList.add('hidden');
+            renameTarget = { type: null, id: null };
+        }
+
+        document.getElementById('saveRenameBtn').addEventListener('click', () => {
+            const newName = document.getElementById('renameInput').value.trim();
+            if (!newName) return;
+
+            if (renameTarget.type === 'folder') {
+                const folder = folders.find(f => f.id === renameTarget.id);
+                if (folder) folder.name = newName;
+                renderFolders();
+                if (currentFolderId === renameTarget.id) document.getElementById('currentFolderName').textContent = newName;
+            } else if (renameTarget.type === 'file') {
+                const file = files.find(f => f.id === renameTarget.id);
+                if (file) file.name = newName;
+                renderFiles();
+            }
+            closeRenameModal();
+        });
 
     </script>
 </body>
